@@ -5,11 +5,19 @@ import FormInput from './FormInput';
 import FormSubmitButton from './FormSubmitButton';
 import { isValidObjectField, updateError} from '../utils/methods'
 
+import {Formik} from 'formik'
+import * as Yup from 'yup'
+
+const validationSchema = Yup.object({
+    usuario: Yup.string().trim().min(3, 'Usuario Invalido').required('Usuario es requerido'),
+    token: Yup.string().trim().min(8, 'Token Invalido').required('Token es requerido')
+})
+
 const ForgetKeyForm = () => {
-  const [userInfo, setUserInfo]=useState({
+  const userInfo = {
     usuario: '',
     token: '',
-  })
+  }
 
   const[error, setError]= useState('')
 
@@ -39,10 +47,41 @@ const ForgetKeyForm = () => {
 
   return (
     <FormContainer>
-      {error ? <Text style={{color: 'red', fontSize: 18, textAlign: 'center'}}>{error}</Text> : null}
-         <FormInput value={usuario} onChangeText={(value) => handleOnChangeText(value, 'usuario')} label='Usuario' placeholder='TransporteFED'/>
-         <FormInput value={token} onChangeText={(value) => handleOnChangeText(value, 'token')} autoCapitalize='none' secureTextEntry label='Token enviado' placeholder='**********'/>
-         <FormSubmitButton onPress={sumbitForm} titulo='Solicitar Cambio de Clave'/>
+      <Formik initialValues={userInfo} validationSchema={validationSchema} 
+      onSubmit={(values, formikActions) => {
+        setTimeout(() => {
+          console.log(values);
+          formikActions.resetForm();
+          formikActions.setSubmitting(false)
+        },3000)
+        }}
+      >
+        {({values, errors, touched, isSubmitting, handleChange, handleBlur, handleSubmit}) => {
+
+          const {usuario, token} = values
+          return (
+          <>
+            <FormInput 
+              value={usuario} 
+              error={touched.usuario && errors.usuario} 
+              onChangeText={ handleChange('usuario')} 
+              onBlur={handleBlur('usuario')}
+              label='Usuario' 
+              placeholder='TransporteFED'/>
+            <FormInput 
+              value={token} 
+              error={touched.token && errors.token}
+              onChangeText={handleChange('token')} 
+              onBlur={handleBlur('token')}
+              autoCapitalize='none' 
+              secureTextEntry 
+              label='Token enviado' 
+              placeholder='**********'/>
+            <FormSubmitButton submitting={isSubmitting} onPress={handleSubmit} titulo='Solicitar Cambio de Clave'/>
+          </>
+          );
+        }}
+      </Formik>   
     </FormContainer>
   );    
 };

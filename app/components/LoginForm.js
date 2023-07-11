@@ -5,12 +5,20 @@ import FormInput from './FormInput';
 import FormSubmitButton from './FormSubmitButton';
 import { isValidObjectField, updateError} from '../utils/methods'
 
+import {Formik} from 'formik'
+import * as Yup from 'yup'
+
+const validationSchema = Yup.object({
+  usuario: Yup.string().trim().min(3, 'Usuario Invalido').required('Usuario es requerido'),
+  password: Yup.string().trim().min(8, 'Contraseña Invalido').required('Contraseña es requerido')
+})
+
 const LoginForm = () => {
 
-  const [userInfo, setUserInfo]=useState({
+  const userInfo ={
     usuario: '',
     password: '',
-  })
+  }
 
   const[error, setError]= useState('')
 
@@ -40,12 +48,43 @@ const LoginForm = () => {
 
   return (
     <FormContainer>
-      {error ? <Text style={{color: 'red', fontSize: 18, textAlign: 'center'}}>{error}</Text> : null}
-         <FormInput value={usuario} onChangeText={(value) => handleOnChangeText(value, 'usuario')} label='Usuario' placeholder='TransporteFED' autoCapitalize='none'/>
-         <FormInput value={password} onChangeText={(value) => handleOnChangeText(value, 'password')} label='Contraseña' placeholder='**********' autoCapitalize='none' secureTextEntry/>
-         <FormSubmitButton onPress={sumbitForm} titulo='Login'/>
+      <Formik initialValues={userInfo} validationSchema={validationSchema} 
+      onSubmit={(values, formikActions) => {
+        setTimeout(() => {
+          console.log(values);
+          formikActions.resetForm();
+          formikActions.setSubmitting(false)
+        },3000)
+        }}
+      >
+        {({values, errors, touched, isSubmitting, handleChange, handleBlur, handleSubmit}) => {
+
+          const {usuario, password} = values
+          return (
+          <>
+            <FormInput 
+              value={usuario} 
+              error={touched.usuario && errors.usuario} 
+              onChangeText={ handleChange('usuario')} 
+              onBlur={handleBlur('usuario')}
+              label='Usuario' 
+              placeholder='TransporteFED'/>
+            <FormInput 
+              value={password} 
+              error={touched.password && errors.password}
+              onChangeText={handleChange('password')} 
+              onBlur={handleBlur('password')}
+              autoCapitalize='none' 
+              secureTextEntry 
+              label='Contraseña' 
+              placeholder='**********'/>
+            <FormSubmitButton submitting={isSubmitting} onPress={handleSubmit} titulo='iniciar sesión '/>
+          </>
+          );
+        }}
+      </Formik>   
     </FormContainer>
-  );    
+  );     
 };
 
 const styles = StyleSheet.create({});
