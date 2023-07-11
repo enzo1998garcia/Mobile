@@ -3,7 +3,8 @@ import FromHeader from './app/components/FromHeader';
 import FromSelectedBtn from './app/components/FromSelectedBtn';
 import LoginForm from './app/components/LoginForm';
 import ForgetKeyForm from './app/components/ForgetKeyForm';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
+import axios from 'axios';
 
 const {width} = Dimensions.get("window")
 
@@ -11,7 +12,19 @@ export default function App() {
   const animacion = useRef(new Animated.Value(0)).current;
   const scrollView = useRef()
 
+  const fetchApi = async () =>{
+    try {
+      const res = await axios.get('http://192.168.1.10:4000/api/');
+      console.log(res.data)
+    } catch (error) {
+      console.log(error.message);
+    }
 
+  }
+
+  useEffect(() => {
+    fetchApi()
+  }, [])
 
   const loginColorInterpolate = animacion.interpolate({
     inputRange: [0, width],
