@@ -8,6 +8,8 @@ import { isValidObjectField, updateError} from '../utils/methods'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
 
+import client from '../api/client';
+
 const validationSchema = Yup.object({
     usuario: Yup.string().trim().min(3, 'Usuario Invalido').required('Usuario es requerido'),
     token: Yup.string().trim().min(8, 'Token Invalido').required('Token es requerido')
@@ -45,16 +47,20 @@ const ForgetKeyForm = () => {
     }
   };
 
+  const forgetKey = async (values, formikActions) => {
+      const res = await  client.get('/empleados/',{
+        ...values
+      });
+
+      console.log(res);
+      formikActions.resetForm();
+      formikActions.setSubmitting(false)
+    }
+
   return (
     <FormContainer>
       <Formik initialValues={userInfo} validationSchema={validationSchema} 
-      onSubmit={(values, formikActions) => {
-        setTimeout(() => {
-          console.log(values);
-          formikActions.resetForm();
-          formikActions.setSubmitting(false)
-        },3000)
-        }}
+      onSubmit={forgetKey}
       >
         {({values, errors, touched, isSubmitting, handleChange, handleBlur, handleSubmit}) => {
 

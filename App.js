@@ -8,6 +8,8 @@ import axios from 'axios';
 
 const {width} = Dimensions.get("window")
 
+
+
 export default function App() {
   const animacion = useRef(new Animated.Value(0)).current;
   const scrollView = useRef()
@@ -15,7 +17,7 @@ export default function App() {
   const fetchApi = async () =>{
     try {
       const res = await axios.get('http://192.168.1.10:4000/api/');
-      console.log(res.data)
+      //console.log(res.data)
     } catch (error) {
       console.log(error.message);
     }
@@ -47,7 +49,7 @@ export default function App() {
     <ScrollView ref={scrollView} horizontal pagingEnabled showsHorizontalScrollIndicator = {false} scrollEventThrottle={16} onScroll={Animated.event([{nativeEvent: {contentOffset: {x: animacion}}}])}>
       <LoginForm/>
       <ScrollView>
-         <ForgetKeyForm/>
+         
       </ScrollView>
       
     </ScrollView>
