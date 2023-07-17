@@ -1,75 +1,49 @@
-import { ScrollView, StyleSheet, Text, View,Dimensions,Animated } from 'react-native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { NavigationContainer } from '@react-navigation/native';
+import { View } from 'react-native';
 import FromHeader from './app/components/FromHeader';
 import FromSelectedBtn from './app/components/FromSelectedBtn';
 import LoginForm from './app/components/LoginForm';
-import ForgetKeyForm from './app/components/ForgetKeyForm';
+import MenuForm from './app/components/MenuForm';
 import { useEffect, useRef } from 'react';
 import axios from 'axios';
 
-const {width} = Dimensions.get("window")
+const Stack = createStackNavigator();
 
-
-
-export default function App() {
-  const animacion = useRef(new Animated.Value(0)).current;
-  const scrollView = useRef()
-
-  const fetchApi = async () =>{
+const App = () => {
+  const fetchApi = async () => {
     try {
       const res = await axios.get('http://192.168.1.10:4000/api/');
       //console.log(res.data)
     } catch (error) {
       console.log(error.message);
     }
-
-  }
+  };
 
   useEffect(() => {
-    fetchApi()
-  }, [])
+    fetchApi();
+  }, []);
 
-  const loginColorInterpolate = animacion.interpolate({
-    inputRange: [0, width],
-    outputRange: ['rgba(27,27,51,1)','rgba(27,27,51,0.4)'],
-  });
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen
+          name="LoginForm"
+          component={LoginForm}
+          options={{
+            headerShown: false, // Oculta el encabezado en esta pantalla
+          }}
+        />
+        <Stack.Screen
+          name="MenuForm"
+          component={MenuForm}
+          options={{
+            headerShown: false, // Oculta el encabezado en esta pantalla
+          }}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+};
 
-  const forgetKeyColorInterpolate = animacion.interpolate({
-    inputRange: [0, width],
-    outputRange: ['rgba(27,27,51,0.4)','rgba(27,27,51,1)'],
-  });
-
-  return <View style={{flex:1, paddingTop: 120}}>
-    <View style={{height:80}} >
-      <FromHeader centerHeading='Bienvenido' subHeading='Transporte FED'/>
-    </View>
-    <View style = {{ flexDirection:'row', paddingHorizontal:20,marginBottom:20 }}>
-      <FromSelectedBtn style={styles.borderLeft} backgroundColor={loginColorInterpolate} titulo='Login' onPress={ () => scrollView.current.scrollTo({x: 0})}/>
-      <FromSelectedBtn style={styles.borderRight} backgroundColor={forgetKeyColorInterpolate} titulo='Olvide mi Contraseña' onPress={ () => scrollView.current.scrollTo({x: width})}/>
-    </View>
-    <ScrollView ref={scrollView} horizontal pagingEnabled showsHorizontalScrollIndicator = {false} scrollEventThrottle={16} onScroll={Animated.event([{nativeEvent: {contentOffset: {x: animacion}}}])}>
-      <LoginForm/>
-      <ScrollView>
-         
-      </ScrollView>
-      
-    </ScrollView>
-  </View>
-
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  borderLeft:{
-    borderTopLeftRadius: 8,
-    borderBottomLeftRadius:8,
-  },
-  borderRight:{
-    borderTopRightRadius: 8,
-    borderBottomRightRadius:8,
-  }
-});
+export default App;

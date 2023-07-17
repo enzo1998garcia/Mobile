@@ -1,26 +1,16 @@
-import { View, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import React from 'react';
+import { View, Text } from 'react-native';
+import FromHeader from '../components/FromHeader';
 
 const MenuForm = () => {
-    return (
-        <View style={styles.container}>
-            <View>
-                <TouchableOpacity>
-                    <Text>
-                        Menu
-                    </Text>
-                </TouchableOpacity>
-                <Text>Menu</Text>
-            </View>
-        </View>
-    )  
-  };
-  
-  const styles = StyleSheet.create({
-      container:{
-          flex: 1,
-       },
-       
-  });
-  
-  export default MenuForm;
+  return (
+    <View>
+      <View style={{ height: 100,paddingTop: 60  }}>
+        <FromHeader centerHeading='Estoy en el Menu '/>
+      </View>
+      {/* Resto del contenido de la página de menú */}
+    </View>
+  );
+};
+
+export default MenuForm;
