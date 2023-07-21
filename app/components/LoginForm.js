@@ -33,36 +33,19 @@ const LoginForm = () => {
     setUserInfo({ ...userInfo, [fieldName]: value });
   };
 
-  const isValidForm = () => {
-    if (!isValidObjectField(userInfo)) {
-      updateError('Usuario y/o Contraseña incorrectos', setError);
-      return false;
-    }
-    if (!isValidObjectField(usuario)) {
-      updateError('Usuario incorrecto', setError);
-      return false;
-    }
-    if (!contrasenia.trim() || contrasenia.length < 7) {
-      updateError('Contraseña incorrecta', setError);
-      return false;
-    }
-    return true;
-  };
-
   const submitForm = async () => {
-    if (isValidForm()) {
       try {
         const res = await client.post('/empleados/logueo', { ...userInfo });
         if (res.data && res.data.length > 0 && res.data[0].Tipo === 'C') {
           setUserInfo({ usuario: '', contrasenia: '' });
           navigation.navigate('MenuForm'); // Navega a la pantalla MenuForm
         } else {
-          updateError('Error: Usuario inexistente', setError);
+          updateError('Usuario y/o Contraseña incorrectos', setError);
         }
       } catch (error) {
         updateError('Error al conectarce con el Servidor:', setError);
       }
-    }
+    
   };
 
   return (
