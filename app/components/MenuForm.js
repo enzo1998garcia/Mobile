@@ -1,16 +1,7 @@
 import React from 'react';
-import { View, Text } from 'react-native';
-import FromHeader from '../components/FromHeader';
-
+import Navegacion from '../navigations/Navegacion';
 const MenuForm = () => {
-  return (
-    <View>
-      <View style={{ height: 100,paddingTop: 60  }}>
-        <FromHeader centerHeading='Estoy en el Menu '/>
-      </View>
-      {/* Resto del contenido de la página de menú */}
-    </View>
-  );
+  return <Navegacion/>;
 };
 
 export default MenuForm;
