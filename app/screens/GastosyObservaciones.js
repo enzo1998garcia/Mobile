@@ -1,9 +1,10 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, Alert } from 'react-native';
 import { Button, List, Divider, Menu, IconButton } from 'react-native-paper';
-import  * as ImagePicker from 'react-native-image-picker';
-//import ImagePicker from 'react-native-image-picker/src/index';
+import { loadImageFromGallery } from '../utils/methods';
+
+
 
 const GastosyObservaciones = () => {
   const [monto, setMonto] = useState('');
@@ -27,7 +28,8 @@ const GastosyObservaciones = () => {
   };
 
   const handleCargarFoto = async () => {
-   // logica de la camara de fotos
+    const result = await loadImageFromGallery({ aspect: [1, 1] });
+    console.log(result);
   };
   
   const handleAgregarGasto = () => {
