@@ -3,7 +3,6 @@ import { StyleSheet, Text, View, FlatList, TouchableOpacity, Modal } from 'react
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import axios from 'axios';
 import { Button } from 'react-native-elements';
-import FormSubmitButton from '../components/FormSubmitButton';
 
 const IniciarTransporte = () => {
   const [data, setData] = useState([]);
@@ -15,13 +14,13 @@ const IniciarTransporte = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://192.168.1.10:4000/api/empleados/listar');
+        const requestBody = { estado_transporte: 'Pendiente' };
+        const response = await axios.post('http://192.168.1.10:4000/api/empleados/ListarTransportesChofer', requestBody);
         setData(response.data);
       } catch (error) {
         console.log('Error al obtener los datos:', error.message);
       }
     };
-
     fetchData();
   }, []);
 
@@ -36,7 +35,7 @@ const IniciarTransporte = () => {
   };
 
   const handleStart = () => {
-    console.log('Iniciar acción para el usuario:', selectedUser?.usuario);
+    console.log('Iniciar acción para el Transporte:', selectedUser?.usuario);
     setShowPlayModal(false);
   };
 
@@ -45,30 +44,37 @@ const IniciarTransporte = () => {
     setShowInfoModal(false);
   };
 
-  const renderItem = ({ item }) => (
-    <View style={styles.item}>
-      <Text>{item.usuario}</Text>
-      <Text>{item.contrasenia}</Text>
-      <Text>{item.nombre_completo}</Text>
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.playButton} onPress={() => handlePlayButtonPress(item)}>
-          <Icon name='play-circle-outline' size={24} color='white' />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.infoButton} onPress={() => handleInfoButtonPress(item)}>
-          <Icon name='info' size={24} color='white' />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+  const renderItem = ({ item }) => {
+    if (item.estado_transporte === 'Pendiente') {
+      return (
+        <View style={styles.item}>
+          <Text>{item.id_transporte}</Text>
+          <Text>{item.estado_transporte}</Text>
+          <Text>{item.kms_distancia}</Text>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity style={styles.playButton} onPress={() => handlePlayButtonPress(item)}>
+              <Icon name='play-circle-outline' size={24} color='white' />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.infoButton} onPress={() => handleInfoButtonPress(item)}>
+              <Icon name='info' size={24} color='white' />
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    } else {
+      return null; // No mostrar elementos que no estén en estado "Pendiente"
+    }
+  };
 
   return (
     <View style={styles.container}>
       {data.length === 0 ? (
+       
         <Text>No hay datos disponibles.</Text>
       ) : (
         <FlatList
           data={data}
-          keyExtractor={(item) => item.usuario.toString()}
+          keyExtractor={(item) => item.id_transporte.toString()}
           renderItem={renderItem}
         />
       )}
@@ -80,7 +86,7 @@ const IniciarTransporte = () => {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text>¿Está seguro que desea iniciar el Viaje {selectedUser?.usuario}?</Text>
+            <Text>¿Está seguro que desea iniciar el Viaje con código {selectedUser?.id_transporte}?</Text>
             <View style={styles.modalButtons}>
               <Button title='   Iniciar   ' onPress={handleStart} />
               <Button title='Cancelar' onPress={handleCancel} />
@@ -96,10 +102,16 @@ const IniciarTransporte = () => {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text>Información adicional sobre el Viaje {selectedItem?.usuario}</Text>
-            <Text>Usuario: {selectedItem?.usuario}</Text>
-            <Text>Contraseña: {selectedItem?.contrasenia}</Text>
-            <Text>Nombre Completo: {selectedItem?.nombre_completo}</Text>
+            <Text>ID de Transporte: {selectedItem?.id_transporte}</Text>
+            <Text>Estado de Transporte: {selectedItem?.estado_transporte}</Text>
+            <Text>Fecha y Hora de Inicio: {selectedItem?.fecha_hora_inicio}</Text>
+            <Text>Fecha y Hora de Fin: {selectedItem?.fecha_hora_fin}</Text>
+            <Text>Kilómetros de Distancia: {selectedItem?.kms_distancia}</Text>
+            <Text>Origen: {selectedItem?.origen}</Text>
+            <Text>Destino: {selectedItem?.destino}</Text>
+            <Text>Matrícula: {selectedItem?.matricula}</Text>
+            <Text>Usuario: {selectedItem?.usuarioC}</Text>
+            <Text>Documento del Cliente: {selectedItem?.documentoCliente}</Text>
             <Button title='Cancelar' onPress={handleCancel} />
           </View>
         </View>
@@ -107,7 +119,6 @@ const IniciarTransporte = () => {
     </View>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
@@ -160,11 +171,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginTop: 20,
-    height:45,
-    borderRadius:8,
+    height: 45,
+    borderRadius: 8,
     alignItems: 'center',
     fontSize: 18,
-    color:'#fff'
+    color: '#fff'
   },
 });
 

@@ -20,7 +20,7 @@ const Navegacion = () => {
           case "Iniciar Transporte":
             iconName="go-kart"
             break;
-          case "Gastos y Obserbaciones":
+          case "Transportes Finalizados":
             iconName="account-alert-outline"
             break;  
           case "listado":
@@ -60,8 +60,8 @@ const Navegacion = () => {
         options={{ headerShown: false }}
       />
       <Tab.Screen
-        name="Gastos y Obserbaciones"
-        component={GastosyObservaciones}
+        name="Transportes Finalizados"
+        component={FinalizarTransporte}
         options={{ headerShown: false }}
       />
     </Tab.Navigator>

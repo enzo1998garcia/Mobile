@@ -4,6 +4,8 @@ import LoginForm from './app/components/LoginForm';
 import MenuForm from './app/components/MenuForm';
 import { useEffect, useRef } from 'react';
 import axios from 'axios';
+import GastosyObservaciones from './app/screens/GastosyObservaciones';
+import { Provider as PaperProvider } from 'react-native-paper';
 
 const Stack = createStackNavigator();
 
@@ -21,6 +23,7 @@ const App = () => {
   }, []);
 
   return (
+    <PaperProvider>
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen
@@ -37,8 +40,16 @@ const App = () => {
             headerShown: false,
           }}
         />
+        <Stack.Screen
+          name="GastosyObservaciones"
+          component={GastosyObservaciones} // Agrega la pantalla GastosyObservaciones al Stack Navigator
+          options={{
+            headerShown: false,
+          }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
+    </PaperProvider>
   );
 };
 

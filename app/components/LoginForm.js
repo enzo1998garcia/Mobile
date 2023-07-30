@@ -34,8 +34,10 @@ const LoginForm = () => {
   };
 
   const submitForm = async () => {
+
       try {
-        const res = await client.post('/empleados/logueo', { ...userInfo });
+        const res = await client.post('/empleados/logueoChofer', { ...userInfo });
+        console.log(res.data)
         if (res.data && res.data.length > 0 && res.data[0].Tipo === 'C') {
           setUserInfo({ usuario: '', contrasenia: '' });
           navigation.navigate('MenuForm'); // Navega a la pantalla MenuForm
