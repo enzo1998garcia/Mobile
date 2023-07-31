@@ -21,8 +21,11 @@ export const updateError = (error, updateError) =>{
         quality: 1,
       });
   
-      if (!result.canceled) {
-        return result.uri;
+      if (!result.canceled && result.assets.length > 0) {
+        const selectedImage = result.assets[0];
+        const uriParts = selectedImage.uri.split('/');
+        const fileName = uriParts[uriParts.length - 1].split('.')[0];
+        return fileName; // Devuelve solo el nombre de la foto sin la extensión
       } else {
         return null;
       }

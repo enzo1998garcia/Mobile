@@ -29,6 +29,9 @@ const GastosyObservaciones = () => {
 
   const handleCargarFoto = async () => {
     const result = await loadImageFromGallery({ aspect: [1, 1] });
+    if (result) {
+      setFoto(result); // Guarda el nombre de la foto seleccionada en el estado 'foto'
+    }
     console.log(result);
   };
   
