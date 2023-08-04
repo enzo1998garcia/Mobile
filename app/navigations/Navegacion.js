@@ -10,7 +10,8 @@ import FinalizarTransporte from '../screens/FinalizarTransporte';
 
 const Tab = createBottomTabNavigator();
 
-const Navegacion = () => {
+const Navegacion = (props) => {
+  
     const screenOpcion=(route, color) => {
         let iconName
         switch (route.name) {
@@ -50,18 +51,18 @@ const Navegacion = () => {
     >
       <Tab.Screen
         name="Transporte"
-        component={Transporte}
+        component={() => <Transporte idChofer={props.idChofer} />}
         options={{ headerShown: false }}
         
       />
       <Tab.Screen
         name="Iniciar Transporte"
-        component={IniciarTransporte}
+        component={() => <IniciarTransporte/>}
         options={{ headerShown: false }}
       />
       <Tab.Screen
         name="Transportes Finalizados"
-        component={FinalizarTransporte}
+        component={() => <FinalizarTransporte/>}
         options={{ headerShown: false }}
       />
     </Tab.Navigator>

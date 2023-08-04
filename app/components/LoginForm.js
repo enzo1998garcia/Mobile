@@ -7,11 +7,13 @@ import FormSubmitButton from './FormSubmitButton';
 import client from '../api/client';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import FromHeader from './FromHeader';
-
 import Icon from 'react-native-vector-icons/FontAwesome';
-
+import { useUserContext } from '../../UserContext';
 
 const LoginForm = () => {
+  const navigation = useNavigation(); // Obtiene el objeto de navegación
+  const { updateUser } = useUserContext();
+
   const [userInfo, setUserInfo] = useState({
     usuario: '',
     contrasenia: '',
@@ -27,7 +29,7 @@ const LoginForm = () => {
 
   const { usuario, contrasenia } = userInfo;
 
-  const navigation = useNavigation(); // Obtiene el objeto de navegación
+ 
 
   const handleOnChangeText = (value, fieldName) => {
     setUserInfo({ ...userInfo, [fieldName]: value });
@@ -39,8 +41,9 @@ const LoginForm = () => {
         const res = await client.post('/empleados/logueoChofer', { ...userInfo });
         console.log(res.data)
         if (res.data && res.data.length > 0 && res.data[0].Tipo === 'C') {
+          updateUser(res.data[0].usuarioC);
           setUserInfo({ usuario: '', contrasenia: '' });
-          navigation.navigate('MenuForm'); // Navega a la pantalla MenuForm
+          navigation.navigate('MenuForm', { user: res.data[0] }); // Navega a la pantalla MenuForm
         } else {
           updateError('Usuario y/o Contraseña incorrectos', setError);
         }

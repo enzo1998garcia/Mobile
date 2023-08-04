@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, FlatList, TouchableOpacity, Modal } from 'react
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import axios from 'axios';
 import { Button } from 'react-native-elements';
-
+import { useUserContext } from '../../UserContext';
 const IniciarTransporte = () => {
   const [data, setData] = useState([]);
   const [showPlayModal, setShowPlayModal] = useState(false);
@@ -11,12 +11,19 @@ const IniciarTransporte = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
 
+  const { user } = useUserContext();
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const requestBody = { estado_transporte: 'Pendiente' };
-        const response = await axios.post('http://192.168.1.10:4000/api/empleados/ListarTransportesChofer', requestBody);
-        setData(response.data);
+        const response = await axios.get('http://192.168.1.10:4000/api/transportes/listadoTransportesAsignados', {
+        params: {
+          idChofer: user,
+          estado_transporte: 'Pendiente'
+        },
+      });
+      console.log(response)
+      setData(response.data.listado);
       } catch (error) {
         console.log('Error al obtener los datos:', error.message);
       }

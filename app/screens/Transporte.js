@@ -7,7 +7,12 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
 import GastosyObservaciones from '../screens/GastosyObservaciones';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome'
+import { useRoute } from '@react-navigation/native';
+import { useUserContext } from '../../UserContext'; // Asegúrate de usar la ubicación correcta del contexto
+
+
 const Transporte = () => {
+  
   const [data, setData] = useState([]);
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [showAsoGastModal, setShowAsoGastModal] = useState(false);
@@ -15,21 +20,30 @@ const Transporte = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   
   const navigation = useNavigation(); 
-
+  const { user } = useUserContext();
+  console.log('Valor de user en Transporte:', user);
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (user) { // Verifica si user y su propiedad idChofer están definidos
+
+      fetchData();
+    }
+  }, [user]);
 
   const fetchData = async () => {
     try {
-      const requestBody = { estado_transporte: 'En Viaje' };
-      const response = await axios.post('http://192.168.1.10:4000/api/empleados/ListarTransportesChofer', requestBody);
-      setData(response.data);
+      const response = await axios.get('http://192.168.1.10:4000/api/transportes/listadoTransportesAsignados', {
+        params: {
+          idChofer: user,
+          estado_transporte: 'En Viaje'
+        },
+      });
+      console.log(response)
+      setData(response.data.listado);
     } catch (error) {
       console.log('Error al obtener los datos:', error.message);
     }
   };
-
+  
   const handleFinishButtonPress = (item) => {
     setSelectedUser(item);
     setShowFinishModal(true);
@@ -59,6 +73,7 @@ const Transporte = () => {
   };
 
   const renderItem = ({ item }) => {
+
     if (item.estado_transporte === 'En viaje') {
     return (
       <View style={styles.item}>
@@ -82,7 +97,7 @@ const Transporte = () => {
 
   return (
     <View style={styles.container}>
-      {data.length === 0 ? (
+      {data && data.length === 0 ? (
         <Text>No hay transportes en estado "En Viaje".</Text>
       ) : (
         <FlatList
