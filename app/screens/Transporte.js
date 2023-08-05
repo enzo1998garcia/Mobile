@@ -3,42 +3,56 @@ import { StyleSheet, Text, View, FlatList, TouchableOpacity, Modal } from 'react
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import axios from 'axios';
 import { Button } from 'react-native-elements';
-import { createStackNavigator } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
-import GastosyObservaciones from '../screens/GastosyObservaciones';
-import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome'
-import { useRoute } from '@react-navigation/native';
-import { useUserContext } from '../../UserContext'; // Asegúrate de usar la ubicación correcta del contexto
-
+import { useUserContext } from '../../UserContext'; 
 
 const Transporte = () => {
-  
-  const [data, setData] = useState([]);
-  const [showFinishModal, setShowFinishModal] = useState(false);
-  const [showAsoGastModal, setShowAsoGastModal] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [data, setData] = useState([]); // MOVIMIENTO DE DATOS 
+  const [showFinishModal, setShowFinishModal] = useState(false); //para concelar
+  const [showAsoGastModal, setShowAsoGastModal] = useState(false); //para asociar gastos 
+  const [selectedItem, setSelectedItem] = useState(null); // para asociar los gastos a este id de transporte
+  const [selectedUser, setSelectedUser] = useState(null); //seleccion del id del transporete para finalizar
+  const [timerData, setTimerData] = useState({ isActive: false, startTime: null, transport: null });
   
   const navigation = useNavigation(); 
   const { user } = useUserContext();
-  console.log('Valor de user en Transporte:', user);
+
   useEffect(() => {
     if (user) { // Verifica si user y su propiedad idChofer están definidos
-
       fetchData();
     }
   }, [user]);
+
+  useEffect(() => {
+    // Actualizar el cronómetro cada segundo si está activo
+    let interval;
+    if (timerData.isActive) {
+      interval = setInterval(() => {
+        setTimerData((prevData) => ({
+          ...prevData,
+          elapsedTime: Math.floor((new Date() - prevData.startTime) / 1000)
+        }));
+      }, 1000);
+    }
+
+    // Limpieza al desmontar el componente o cuando el cronómetro se detiene
+    return () => clearInterval(interval);
+  }, [timerData.isActive]);
 
   const fetchData = async () => {
     try {
       const response = await axios.get('http://192.168.1.10:4000/api/transportes/listadoTransportesAsignados', {
         params: {
           idChofer: user,
-          estado_transporte: 'En Viaje'
+          activo: 1
         },
       });
-      console.log(response)
       setData(response.data.listado);
+
+      const enViajeTransport = response.data.listado.find(item => item.estado_transporte === 'En viaje');
+    if (enViajeTransport) {
+      startTimer(enViajeTransport.id_transporte);
+    }
     } catch (error) {
       console.log('Error al obtener los datos:', error.message);
     }
@@ -67,33 +81,61 @@ const Transporte = () => {
     });
   };
 
+  const startTimer = (transport) => {
+    setTimerData({ isActive: true, startTime: new Date(), transport });
+  };
+
+  const stopTimer = () => {
+    setTimerData({ isActive: false, startTime: null, transport: null });
+  };
+
   const handleCancel = () => {
     setShowFinishModal(false);
     setShowAsoGastModal(false);
   };
 
-  const renderItem = ({ item }) => {
-
-    if (item.estado_transporte === 'En viaje') {
-    return (
-      <View style={styles.item}>
-        <Text>{item.id_transporte}</Text>
-        <Text>{item.estado_transporte}</Text>
-        <Text>{item.kms_distancia}</Text>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.finalizarButton} onPress={() => handleFinishButtonPress(item)}>
-            <Icon name='check-circle-outline' size={24} color='white' />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.calculatorButton} onPress={() => handleAsoGastButtonPress(item)}>
-            <Icon name='attach-money' size={24} color='white' />
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }else{
-    return null; // No mostrar elementos que no estén en estado "En viaje"
-  }
+  const renderTime = (transport) => {
+    if (timerData.isActive && timerData.transport === transport) {
+      const elapsedTime = timerData.elapsedTime;
+      const minutes = Math.floor(elapsedTime / 60);
+      const seconds = elapsedTime % 60;
+      return <Text>{minutes} min {seconds} seg</Text>;
+    }
+    return null;
   };
+  
+
+  const renderItem = ({ item }) => {
+    if (item.estado_transporte === 'En viaje') {
+      return (
+        <View style={styles.item}>
+          <Text>{item.id_transporte}</Text>
+          <Text>{item.estado_transporte}</Text>
+          <Text>{item.kms_distancia}</Text>
+          <View style={styles.timerContainer}>
+            {renderTime(item.id_transporte)}
+          </View>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.finalizarButton}
+              onPress={() => handleFinishButtonPress(item)}
+            >
+              <Icon name='check-circle-outline' size={24} color='white' />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.calculatorButton}
+              onPress={() => handleAsoGastButtonPress(item)}
+            >
+              <Icon name='attach-money' size={24} color='white' />
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    } else {
+      return null; // No mostrar elementos que no estén en estado "En viaje"
+    }
+  };
+
 
   return (
     <View style={styles.container}>
@@ -199,6 +241,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginTop: 20,
+  },
+  timerContainer: {
+    alignItems: 'center',
+    marginTop: 10,
+    backgroundColor: '#a17dc3',
+    borderRadius: 8,
   },
 });
 

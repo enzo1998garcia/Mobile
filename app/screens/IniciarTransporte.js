@@ -19,7 +19,8 @@ const IniciarTransporte = () => {
         const response = await axios.get('http://192.168.1.10:4000/api/transportes/listadoTransportesAsignados', {
         params: {
           idChofer: user,
-          estado_transporte: 'Pendiente'
+          estado_transporte: 'Pendiente',
+          activo:1
         },
       });
       console.log(response)
