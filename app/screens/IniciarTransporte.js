@@ -4,6 +4,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import axios from 'axios';
 import { Button } from 'react-native-elements';
 import { useUserContext } from '../../UserContext';
+
 const IniciarTransporte = () => {
   const [data, setData] = useState([]);
   const [showPlayModal, setShowPlayModal] = useState(false);
@@ -16,15 +17,15 @@ const IniciarTransporte = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        console.log('Fetching data...');
         const response = await axios.get('http://192.168.1.10:4000/api/transportes/listadoTransportesAsignados', {
-        params: {
-          idChofer: user,
-          estado_transporte: 'Pendiente',
-          activo:1
-        },
-      });
-      console.log(response)
-      setData(response.data.listado);
+          params: {
+            idChofer: user,
+            estado_transporte: 'Pendiente',
+            activo: 1,
+          },
+        });
+        setData(response.data.listado);
       } catch (error) {
         console.log('Error al obtener los datos:', error.message);
       }
@@ -53,6 +54,7 @@ const IniciarTransporte = () => {
   };
 
   const renderItem = ({ item }) => {
+    console.log('Rendering item:', item);
     if (item.estado_transporte === 'Pendiente') {
       return (
         <View style={styles.item}>
@@ -73,19 +75,17 @@ const IniciarTransporte = () => {
       return null; // No mostrar elementos que no estén en estado "Pendiente"
     }
   };
-
   return (
     <View style={styles.container}>
-      {data.length === 0 ? (
-       
-        <Text>No hay datos disponibles.</Text>
-      ) : (
-        <FlatList
-          data={data}
-          keyExtractor={(item) => item.id_transporte.toString()}
-          renderItem={renderItem}
-        />
-      )}
+      {data && data.some(item => item.estado_transporte === "Pendiente") ? (
+    <FlatList
+      data={data}
+      keyExtractor={(item) => item.id_transporte.toString()}
+      renderItem={renderItem}
+    />
+  ) : (
+    <Text>No hay transportes en estado "Pendiente".</Text>
+  )}
       <Modal
         visible={showPlayModal}
         transparent

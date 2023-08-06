@@ -44,6 +44,7 @@ const Transporte = () => {
       const response = await axios.get('http://192.168.1.10:4000/api/transportes/listadoTransportesAsignados', {
         params: {
           idChofer: user,
+          estado_transporte: 'En viaje',
           activo: 1
         },
       });
@@ -136,18 +137,18 @@ const Transporte = () => {
     }
   };
 
-
   return (
+    
     <View style={styles.container}>
-      {data && data.length === 0 ? (
-        <Text>No hay transportes en estado "En Viaje".</Text>
-      ) : (
-        <FlatList
-          data={data}
-          keyExtractor={(item) => item.id_transporte.toString()}
-          renderItem={renderItem}
-        />
-      )}
+      {data && data.some(item => item.estado_transporte === "En viaje") ? (
+    <FlatList
+      data={data}
+      keyExtractor={(item) => item.id_transporte.toString()}
+      renderItem={renderItem}
+    />
+  ) : (
+    <Text>No hay transportes en estado "En viaje".</Text>
+  )}
       <Modal
         visible={showFinishModal}
         transparent
