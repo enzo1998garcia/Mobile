@@ -11,6 +11,15 @@ import FinalizarTransporte from '../screens/FinalizarTransporte';
 const Tab = createBottomTabNavigator();
 
 const Navegacion = (props) => {
+
+    const screenOptions = ({ route }) => ({
+      tabBarActiveTintColor: "#7b24cb",
+      tabBarInactiveTintColor: "#a17dc3",
+      tabBarStyle: {
+        display: "flex",
+      },
+      tabBarIcon: ({ color }) => screenOpcion(route, color), // Agregado aquí
+    });
   
     const screenOpcion=(route, color) => {
         let iconName
@@ -40,31 +49,27 @@ const Navegacion = (props) => {
   return (
     <Tab.Navigator
       initialRouteName='Transporte'
-      tabBarOptions={{
-        inactiveTintColor: "#a17dc3",
-        activeTintColor: "#7b24cb"
-        
-      }}
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ color }) => screenOpcion(route, color)
-      })}
+      screenOptions={screenOptions}
     >
       <Tab.Screen
         name="Transporte"
-        component={() => <Transporte idChofer={props.idChofer} />}
         options={{ headerShown: false }}
         
-      />
+      >
+        {() => <Transporte idChofer={props.idChofer} />}
+        </Tab.Screen>
       <Tab.Screen
         name="Iniciar Transporte"
-        component={() => <IniciarTransporte/>}
         options={{ headerShown: false }}
-      />
+      >
+        {() => <IniciarTransporte/>}
+      </Tab.Screen>
       <Tab.Screen
         name="Transportes Finalizados"
-        component={() => <FinalizarTransporte/>}
         options={{ headerShown: false }}
-      />
+      >
+        {() => <FinalizarTransporte/>}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 }

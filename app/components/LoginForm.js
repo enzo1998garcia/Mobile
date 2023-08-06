@@ -36,7 +36,6 @@ const LoginForm = () => {
   };
 
   const submitForm = async () => {
-
       try {
         const res = await client.post('/empleados/logueoChofer', { ...userInfo });
         console.log(res.data)
