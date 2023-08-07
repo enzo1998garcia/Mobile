@@ -4,6 +4,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import axios from 'axios';
 import { Button } from 'react-native-elements';
 import { useUserContext } from '../../UserContext';
+import { useNavigation } from '@react-navigation/native';
 
 const IniciarTransporte = () => {
   const [data, setData] = useState([]);
@@ -11,31 +12,39 @@ const IniciarTransporte = () => {
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
 
+  const navigation = useNavigation();
   const { user } = useUserContext();
 
+  const fetchData = async () => {
+    try {
+      const response = await axios.get('http://192.168.1.10:4000/api/transportes/listadoTransportesAsignados', {
+        params: {
+          idChofer: user,
+          estado_transporte: 'Pendiente',
+          activo: 1,
+        },
+      });
+      setData(response.data.listado);
+    } catch (error) {
+      console.log('Error al obtener los datos:', error.message);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        console.log('Fetching data...');
-        const response = await axios.get('http://192.168.1.10:4000/api/transportes/listadoTransportesAsignados', {
-          params: {
-            idChofer: user,
-            estado_transporte: 'Pendiente',
-            activo: 1,
-          },
-        });
-        setData(response.data.listado);
-      } catch (error) {
-        console.log('Error al obtener los datos:', error.message);
-      }
-    };
-    fetchData();
+    fetchData(); 
   }, []);
 
   const handlePlayButtonPress = (item) => {
-    setSelectedUser(item);
-    setShowPlayModal(true);
+    // valida si hay un transporte en estado En Viaje
+    const enViajeTransport = data.find((transport) => transport.estado_transporte === 'En Viaje');
+    if (enViajeTransport) {
+      setErrorMessage('No se puede iniciar otro transporte mientras haya uno en estado "En Viaje"');
+    } else {
+      setSelectedUser(item);
+      setShowPlayModal(true);
+    }
   };
 
   const handleInfoButtonPress = (item) => {
@@ -43,9 +52,31 @@ const IniciarTransporte = () => {
     setShowInfoModal(true);
   };
 
-  const handleStart = () => {
-    console.log('Iniciar acción para el Transporte:', selectedUser?.usuario);
+  const handleStart = async () => {
+    console.log('Iniciar acción para el Transporte:', selectedUser?.id_transporte);
     setShowPlayModal(false);
+
+    try {
+      const response = await fetch('http://192.168.1.10:4000/api/transportes/inicioTransporte', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          idTransporte: selectedUser?.id_transporte,
+        }),
+      });
+
+      const data = await response.json();
+      console.log('Respuesta de la API:', data);
+      if (response.status === 200 && data.message === 'Se inicio el transporte exitosamente') {
+         fetchData();
+      } else {
+      }
+    } catch (error) {
+      console.error('Error al hacer la solicitud:', error);
+    }
   };
 
   const handleCancel = () => {
@@ -54,7 +85,6 @@ const IniciarTransporte = () => {
   };
 
   const renderItem = ({ item }) => {
-    console.log('Rendering item:', item);
     if (item.estado_transporte === 'Pendiente') {
       return (
         <View style={styles.item}>
@@ -72,11 +102,12 @@ const IniciarTransporte = () => {
         </View>
       );
     } else {
-      return null; // No mostrar elementos que no estén en estado "Pendiente"
+      return null; // No muestra elementos que no sean "Pendiente"
     }
   };
   return (
     <View style={styles.container}>
+      {errorMessage ? <Text style={styles.errorMessage}>{errorMessage}</Text> : null}
       {data && data.some(item => item.estado_transporte === "Pendiente") ? (
     <FlatList
       data={data}
@@ -86,6 +117,19 @@ const IniciarTransporte = () => {
   ) : (
     <Text>No hay transportes en estado "Pendiente".</Text>
   )}
+      <Modal
+      visible={!!errorMessage} // Mostrar el modal si hay un mensaje de error
+      transparent
+      animationType='fade'
+      onRequestClose={() => setErrorMessage('')} // Cerrar el modal al tocar fuera
+      >
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <Text style={styles.errorText}>{errorMessage}</Text>
+          <Button title='Aceptar' onPress={() => setErrorMessage('')} />
+        </View>
+      </View>
+      </Modal>
       <Modal
         visible={showPlayModal}
         transparent
@@ -184,6 +228,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     fontSize: 18,
     color: '#fff'
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 16,
+    marginBottom: 10,
+    textAlign: 'center',
   },
 });
 

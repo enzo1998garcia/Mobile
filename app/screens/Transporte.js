@@ -5,6 +5,7 @@ import axios from 'axios';
 import { Button } from 'react-native-elements';
 import { useNavigation } from '@react-navigation/native';
 import { useUserContext } from '../../UserContext'; 
+import { useIsFocused } from '@react-navigation/native';
 
 const Transporte = () => {
   const [data, setData] = useState([]); // MOVIMIENTO DE DATOS 
@@ -16,12 +17,13 @@ const Transporte = () => {
   
   const navigation = useNavigation(); 
   const { user } = useUserContext();
+  const isFocused = useIsFocused();
 
   useEffect(() => {
     if (user) { // Verifica si user y su propiedad idChofer están definidos
       fetchData();
     }
-  }, [user]);
+  }, [user,isFocused]);
 
   useEffect(() => {
     // Actualizar el cronómetro cada segundo si está activo
@@ -44,13 +46,13 @@ const Transporte = () => {
       const response = await axios.get('http://192.168.1.10:4000/api/transportes/listadoTransportesAsignados', {
         params: {
           idChofer: user,
-          estado_transporte: 'En viaje',
+          estado_transporte: 'En Viaje',
           activo: 1
         },
       });
       setData(response.data.listado);
 
-      const enViajeTransport = response.data.listado.find(item => item.estado_transporte === 'En viaje');
+      const enViajeTransport = response.data.listado.find(item => item.estado_transporte === 'En Viaje');
     if (enViajeTransport) {
       startTimer(enViajeTransport.id_transporte);
     }
@@ -107,7 +109,7 @@ const Transporte = () => {
   
 
   const renderItem = ({ item }) => {
-    if (item.estado_transporte === 'En viaje') {
+    if (item.estado_transporte === 'En Viaje') {
       return (
         <View style={styles.item}>
           <Text>{item.id_transporte}</Text>
@@ -140,7 +142,7 @@ const Transporte = () => {
   return (
     
     <View style={styles.container}>
-      {data && data.some(item => item.estado_transporte === "En viaje") ? (
+      {data && data.some(item => item.estado_transporte === "En Viaje") ? (
     <FlatList
       data={data}
       keyExtractor={(item) => item.id_transporte.toString()}
