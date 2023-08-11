@@ -9,6 +9,7 @@ import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import FromHeader from './FromHeader';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useUserContext } from '../../UserContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LoginForm = () => {
   const navigation = useNavigation(); // Obtiene el objeto de navegación
@@ -39,11 +40,13 @@ const LoginForm = () => {
       setIsLoading(true);
       const res = await client.post('/empleados/logueoChofer', { ...userInfo });
       console.log(res.data);
-      if (res.data && res.data.length > 0 && res.data[0].Tipo === 'C') {
-        updateUser(res.data[0].usuarioC);
+      if (res.data && res.data.usuario.Tipo === 'C') {
+        updateUser(res.data.usuario.usuarioC);
         setUserInfo({ usuario: '', contrasenia: '' });
         setIsConnected(true);
-        navigation.navigate('MenuForm', { user: res.data[0] }); // Navega a la pantalla MenuForm
+        const token = res.data.token; // Asumiendo que el token está en la propiedad 'token' del objeto de respuesta
+        await AsyncStorage.setItem('authToken', token);
+        navigation.navigate('MenuForm', { user: res.data.usuario });  // Navega a la pantalla MenuForm
       } else {
         setIsConnected(true);
         console.log('en catch');
