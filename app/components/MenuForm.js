@@ -20,7 +20,7 @@ const MenuForm = () => {
   };
 
   const idChofer = user?.idChofer || 'Valor predeterminado si idChofer no está definido';
-
+  const token = user?.token || '';
   console.log('Valor de user en MenuForm:', user);
 
   useEffect(() => {
@@ -29,7 +29,7 @@ const MenuForm = () => {
     }
   }, [isFocused]);
 
-  return <Navegacion idChofer={idChofer} />;
+  return <Navegacion idChofer={idChofer} token={token} />;
 };
 
 export default MenuForm;

@@ -41,7 +41,10 @@ const LoginForm = () => {
       const res = await client.post('/empleados/logueoChofer', { ...userInfo });
       console.log(res.data);
       if (res.data && res.data.usuario.Tipo === 'C') {
-        updateUser(res.data.usuario.usuarioC);
+        updateUser({
+          usuarioC: res.data.usuario.usuarioC,
+          token: res.data.token,
+        });
         setUserInfo({ usuario: '', contrasenia: '' });
         setIsConnected(true);
         const token = res.data.token; // Asumiendo que el token está en la propiedad 'token' del objeto de respuesta

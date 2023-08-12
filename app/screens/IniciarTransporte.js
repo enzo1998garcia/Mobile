@@ -5,8 +5,9 @@ import axios from 'axios';
 import { Button } from 'react-native-elements';
 import { useUserContext } from '../../UserContext';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const IniciarTransporte = () => {
+const IniciarTransporte = (props) => {
   const [data, setData] = useState([]);
   const [showPlayModal, setShowPlayModal] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
@@ -15,16 +16,23 @@ const IniciarTransporte = () => {
   const [errorMessage, setErrorMessage] = useState('');
 
   const navigation = useNavigation();
-  const { user } = useUserContext();
+  const { user  } = useUserContext();
+ 
 
   const fetchData = async () => {
     try {
-      const response = await axios.get('http://192.168.1.10:4000/api/transportes/listadoTransportesAsignados', {
+      console.log(user.usuarioC)
+      console.log(user.token)
+      const response = await axios.get('http://192.168.1.6:4000/api/transportes/listadoTransportesAsignados', {
+        headers: {
+          Authorization: user.token, 
+        },    
         params: {
-          idChofer: user,
+          idChofer: user.usuarioC,
           estado_transporte: 'Pendiente',
           activo: 1,
         },
+        
       });
       setData(response.data.listado);
     } catch (error) {
@@ -51,7 +59,7 @@ const IniciarTransporte = () => {
     setSelectedItem(item);
     setShowInfoModal(true);
   };
-
+  
   const handleStart = async () => {
     console.log('Iniciar acción para el Transporte:', selectedUser?.id_transporte);
     setShowPlayModal(false);
@@ -62,6 +70,7 @@ const IniciarTransporte = () => {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${user.token}`,
         },
         body: JSON.stringify({
           idTransporte: selectedUser?.id_transporte,

@@ -56,7 +56,7 @@ const Navegacion = (props) => {
         options={{ headerShown: false }}
         
       >
-        {() => <Transporte idChofer={props.idChofer} />}
+        {() => <Transporte idChofer={props.idChofer} token={props.token} />}
         </Tab.Screen>
       <Tab.Screen
         name="Iniciar Transporte"

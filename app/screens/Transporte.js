@@ -43,7 +43,7 @@ const Transporte = () => {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get('http://192.168.1.10:4000/api/transportes/listadoTransportesAsignados', {
+      const response = await axios.get('http://192.168.1.6:4000/api/transportes/listadoTransportesAsignados', {
         params: {
           idChofer: user,
           estado_transporte: 'En Viaje',
