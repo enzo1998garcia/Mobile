@@ -42,10 +42,15 @@ const Transporte = () => {
   }, [timerData.isActive]);
 
   const fetchData = async () => {
+    console.log(user.usuarioC)
+      console.log(user.token)
     try {
       const response = await axios.get('http://192.168.1.6:4000/api/transportes/listadoTransportesAsignados', {
+        headers: {
+          Authorization: user.token, 
+        },    
         params: {
-          idChofer: user,
+          idChofer: user.usuarioC,
           estado_transporte: 'En Viaje',
           activo: 1
         },

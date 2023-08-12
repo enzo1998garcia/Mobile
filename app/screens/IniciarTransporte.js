@@ -65,15 +65,16 @@ const IniciarTransporte = (props) => {
     setShowPlayModal(false);
 
     try {
-      const response = await fetch('http://192.168.1.10:4000/api/transportes/inicioTransporte', {
+      const response = await fetch('http://192.168.1.6:4000/api/transportes/inicioTransporte', {
         method: 'POST',
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${user.token}`,
+          Authorization: user.token,   
         },
         body: JSON.stringify({
           idTransporte: selectedUser?.id_transporte,
+  
         }),
       });
 
