@@ -1,26 +1,57 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, Alert } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, FlatList, Alert, Image } from 'react-native';
 import { Button, List, Divider, Menu, IconButton } from 'react-native-paper';
 import { loadImageFromGallery } from '../utils/methods';
-
-
+import { useUserContext } from '../../UserContext'; 
+import { useRoute } from '@react-navigation/native';
+import axios from 'axios';
 
 const GastosyObservaciones = () => {
+  const route = useRoute();
+  const transporteId = route.params?.transporteId;
+
   const [monto, setMonto] = useState('');
   const [foto, setFoto] = useState('');
+  const [descripcion, setDescripcion] = useState('');
   const [gastosCargados, setGastosCargados] = useState([]);
-  const [showMenu, setShowMenu] = useState(false);
-  const [selectedOption, setSelectedOption] = useState(null);
   const [montoError, setMontoError] = useState('');
   const [editIndex, setEditIndex] = useState(-1);
   const navigation = useNavigation();
+  const { user } = useUserContext();
 
-  const opcionesDropDown = [
-    { label: 'Opción 1', value: 'opcion1' },
-    { label: 'Opción 2', value: 'opcion2' },
-    { label: 'Opción 3', value: 'opcion3' },
-  ];
+  const fetchData = async () => {
+    try {
+      console.log('en gastos '+ user.usuarioC)
+      console.log('en gastos '+ user.token)
+      console.log('ID de transporte:', transporteId);
+      const response = await axios.get('http://192.168.1.6:4000/api/gastos/listarGastos', {
+        headers: {
+          Authorization: user.token, 
+        },params: {
+          id_transporte: transporteId,
+        }    
+      }
+      );
+      console.log(response)
+      if (response.data && response.data.message === 'Existen gastos') {
+        
+        setGastosCargados(response.data.listado);
+      } else {
+        setGastosCargados([]);
+      }
+    } catch (error) {
+      console.error('Error al obtener gastos:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData(); // Carga los gastos desde la API al montar el componente
+  }, []);
+
+  const handleDescripcionChange = (text) => {
+    setDescripcion(text);
+  };
 
   const handleMontoChange = (text) => {
     setMonto(text);
@@ -30,9 +61,8 @@ const GastosyObservaciones = () => {
   const handleCargarFoto = async () => {
     const result = await loadImageFromGallery({ aspect: [1, 1] });
     if (result) {
-      setFoto(result); // Guarda el nombre de la foto seleccionada en el estado 'foto'
+      setFoto(result);
     }
-    console.log(result);
   };
   
   const handleAgregarGasto = () => {
@@ -41,25 +71,21 @@ const GastosyObservaciones = () => {
       return;
     }
     if (editIndex === -1) {
-      // Agregrego otro a la lista
-      setGastosCargados([...gastosCargados, { monto, foto }]);
+      setGastosCargados([...gastosCargados, { descripcion, monto, foto }]);
     } else {
-      // Actualizar el gasto existente si hay un índice de edición
       const updatedGastos = [...gastosCargados];
-      updatedGastos[editIndex] = { monto, foto };
+      updatedGastos[editIndex] = { descripcion, monto, foto };
       setGastosCargados(updatedGastos);
-      setEditIndex(-1); // Restablecer el índice de edición
+      setEditIndex(-1);
     }
-
+    setDescripcion('');
     setMonto('');
     setFoto('');
   };
 
-
-  
   const handleEditarGasto = (index) => {
-    // ver que valores del gasto selecionado se podra editar
     const gastoEditado = gastosCargados[index];
+    setDescripcion(gastoEditado.descripcion);
     setMonto(gastoEditado.monto);
     setFoto(gastoEditado.foto);
     setEditIndex(index);
@@ -71,90 +97,69 @@ const GastosyObservaciones = () => {
     setGastosCargados(updatedGastos);
   };
 
-  const handleMenuToggle = () => {
-    setShowMenu(!showMenu);
-  };
-
-  const handleOptionSelect = (option) => {
-    setSelectedOption(option);
-    setShowMenu(false);
-  };
 
   const renderItem = ({ item, index }) => (
     <List.Item
-      title={`Monto: ${item.monto}`}
-      description={`Foto: ${item.foto}`}
-      left={(props) => <List.Icon {...props} icon="currency-usd" />}
-      right={(props) => (
-        <View style={{ flexDirection: 'row' }}>
+    title={`Descripción ${item.observaciones}`}
+    description={`Monto: ${item.monto_gasto}`}
+    left={(props) => <List.Icon {...props} icon="currency-usd" />}
+    right={() => (
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 16 }}>
           <IconButton
-            {...props}
             icon="pencil"
             onPress={() => handleEditarGasto(index)}
           />
           <IconButton
-            {...props}
             icon="delete"
             onPress={() => handleEliminarGasto(index)}
           />
         </View>
-      )}
-    />
-  );
-
+    )}
+    style={{ marginBottom: 16, backgroundColor: '#F5F5F5', borderRadius: 8, padding: 16 }}
+  />
+);
   return (
     <View style={{ flex: 1,top:15}}>
-    <IconButton
-      icon="arrow-left"
-      onPress={() => navigation.goBack()}
-      style={{ alignSelf: 'flex-start', marginBottom: 16 }}
-    />
-    <View style={{ flex: 1, padding: 20}}>
-      <Menu
-        visible={showMenu}
-        onDismiss={() => setShowMenu(false)}
-        anchor={
-          <TouchableOpacity onPress={handleMenuToggle} style={{ marginBottom: 16 }}>
-            <Text>{selectedOption ? selectedOption.label : 'Seleccione una opción'}</Text>
-          </TouchableOpacity>
-        }
-      >
-        {opcionesDropDown.map((option, index) => (
-          <Menu.Item
-            key={index}
-            onPress={() => handleOptionSelect(option)}
-            title={option.label}
-            checked={selectedOption && selectedOption.value === option.value}
-          />
-        ))}
-      </Menu>
-      {montoError ? <Text style={{ color: 'red' }}>{montoError}</Text> : null}
-
-      <TextInput
-        style={{ backgroundColor: '#F5F5F5', borderRadius: 8, padding: 10, marginBottom: 16, height:45, }}
-        onChangeText={handleMontoChange}
-        value={monto}
-        placeholder="Monto"
-        keyboardType="numeric"
+      <IconButton
+        icon="arrow-left"
+        onPress={() => navigation.goBack()}
+        style={{ alignSelf: 'flex-start', marginBottom: 16 }}
       />
+      <View style={{ flex: 1, padding: 20}}>
+        <TextInput
+          style={{ backgroundColor: '#F5F5F5', borderRadius: 8, padding: 10, marginBottom: 16, height: 45 }}
+          onChangeText={handleDescripcionChange}
+          value={descripcion}
+          placeholder="Descripción"
+        />
 
-      <Button mode="contained" icon="camera" onPress={handleCargarFoto} style={{ marginBottom: 16 }}>
-        Cargar Foto
-      </Button>
+        {montoError ? <Text style={{ color: 'red' }}>{montoError}</Text> : null}
 
-      <Button mode="contained" onPress={handleAgregarGasto} style={{ marginBottom: 16 }}>
-        Agregar Gasto
-      </Button>
+        <TextInput
+          style={{ backgroundColor: '#F5F5F5', borderRadius: 8, padding: 10, marginBottom: 16, height:45, }}
+          onChangeText={handleMontoChange}
+          value={monto}
+          placeholder="Monto"
+          keyboardType="numeric"
+        />
 
-      <Divider style={{ marginBottom: 16 }} />
+        <Button mode="contained" icon="camera" onPress={handleCargarFoto} style={{ marginBottom: 16 }}>
+          Cargar Foto
+        </Button>
 
-      <FlatList
-        data={gastosCargados}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={renderItem}
-        ItemSeparatorComponent={() => <Divider />}
-      />
-    </View>
+        <Button mode="contained" onPress={handleAgregarGasto} style={{ marginBottom: 16 }}>
+          Agregar Gasto
+        </Button>
+
+        <Divider style={{ marginBottom: 16 }} />
+
+        <FlatList
+          data={gastosCargados}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={renderItem}
+          ItemSeparatorComponent={() => <Divider />}
+        />
+      </View>
     </View>
   );
 };

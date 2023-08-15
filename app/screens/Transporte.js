@@ -76,9 +76,32 @@ const Transporte = () => {
     setShowAsoGastModal(true);
   };
   
-  const handleFinalizar = () => {
+  const handleFinalizar = async () => {
     console.log('Finalizar acción para el transporte con ID:', selectedUser?.id_transporte);
     setShowFinishModal(false);
+    try {
+      const response = await fetch('http://192.168.1.6:4000/api/transportes/finalizarTransporte', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: user.token,   
+        },
+        body: JSON.stringify({
+          idTransporte: selectedUser?.id_transporte,
+  
+        }),
+      });
+
+      const data = await response.json();
+      console.log('Respuesta de la API:', data);
+      if (response.status === 200 && data.message === 'Se finalizó el transporte exitosamente') {
+         fetchData();
+      } else {
+      }
+    } catch (error) {
+      console.error('Error al hacer la solicitud:', error);
+    }
   };
 
   const handleAsociarGastos = () => {
@@ -166,11 +189,6 @@ const Transporte = () => {
           <View style={styles.modalContent}>
             <Text>Desea Finalizar el viaje: {selectedUser?.id_transporte}</Text>
             <Text>Estado: {selectedUser?.estado_transporte}</Text>
-            <Text>aca tendria que ir un if para controlar si se cargaron gastos y colocar mensaje 
-              de si se esta seguro que se desea finalizar el transporte sin gastos asociados,
-              sino luego se pasa para la culminacion en la funcion handleFinalizar se llamaria al store
-              para que lo finalice
-            </Text>
             <View style={styles.modalButtons}>
               <Button title='Finalizar' onPress={handleFinalizar} />
               <Button title='Cancelar' onPress={() => handleCancel(false)} />
