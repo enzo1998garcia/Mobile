@@ -41,8 +41,13 @@ const IniciarTransporte = (props) => {
   };
 
   useEffect(() => {
-    fetchData(); 
-  }, []);
+    fetchData();
+    const interval = setInterval(() => {
+      fetchData();
+    }, 10000);
+    console.log('actualiza iniciar')
+    return () => clearInterval(interval);
+  }, [user]);
 
   const handlePlayButtonPress = (item) => {
     // valida si hay un transporte en estado En Viaje

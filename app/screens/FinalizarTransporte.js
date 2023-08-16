@@ -17,6 +17,11 @@ const FinalizarTransporte = () => {
 
   useEffect(() => {
     fetchData();
+    const interval = setInterval(() => {
+      fetchData();
+    }, 10000);
+    console.log('actualiza finalizar')
+    return () => clearInterval(interval);
   }, []);
 
   const fetchData = async () => {

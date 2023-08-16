@@ -20,9 +20,12 @@ const Transporte = () => {
   const isFocused = useIsFocused();
 
   useEffect(() => {
-    if (user) { // Verifica si user y su propiedad idChofer están definidos
+    fetchData();
+    const interval = setInterval(() => {
       fetchData();
-    }
+    }, 10000);
+    console.log('actualiza transporte')
+    return () => clearInterval(interval);
   }, [user,isFocused]);
 
   useEffect(() => {
@@ -76,7 +79,7 @@ const Transporte = () => {
     setShowAsoGastModal(true);
   };
   
-  const handleFinalizar = async () => {
+  const handleFinalizar = async() => {
     console.log('Finalizar acción para el transporte con ID:', selectedUser?.id_transporte);
     setShowFinishModal(false);
     try {
@@ -95,7 +98,7 @@ const Transporte = () => {
 
       const data = await response.json();
       console.log('Respuesta de la API:', data);
-      if (response.status === 200 && data.message === 'Se finalizó el transporte exitosamente') {
+      if (response.status === 200 && data.message === 'Se inicio el transporte exitosamente') {
          fetchData();
       } else {
       }
