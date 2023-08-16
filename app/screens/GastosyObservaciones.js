@@ -22,9 +22,6 @@ const GastosyObservaciones = () => {
 
   const fetchData = async () => {
     try {
-      console.log('en gastos '+ user.usuarioC)
-      console.log('en gastos '+ user.token)
-      console.log('ID de transporte:', transporteId);
       const response = await axios.get('http://192.168.1.6:4000/api/gastos/listarGastos', {
         headers: {
           Authorization: user.token, 

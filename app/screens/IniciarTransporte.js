@@ -21,8 +21,6 @@ const IniciarTransporte = (props) => {
 
   const fetchData = async () => {
     try {
-      console.log(user.usuarioC)
-      console.log(user.token)
       const response = await axios.get('http://192.168.1.6:4000/api/transportes/listadoTransportesAsignados', {
         headers: {
           Authorization: user.token, 
@@ -45,7 +43,6 @@ const IniciarTransporte = (props) => {
     const interval = setInterval(() => {
       fetchData();
     }, 10000);
-    console.log('actualiza iniciar')
     return () => clearInterval(interval);
   }, [user]);
 

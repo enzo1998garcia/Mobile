@@ -18,11 +18,8 @@ const MenuForm = () => {
       console.log(error.message);
     }
   };
-
   const idChofer = user?.idChofer || 'Valor predeterminado si idChofer no está definido';
   const token = user?.token || '';
-  console.log('Valor de user en MenuForm:', user);
-
   useEffect(() => {
     // Realiza la primera solicitud cuando el componente obtiene el enfoque
     if (isFocused) {

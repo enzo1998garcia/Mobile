@@ -24,7 +24,6 @@ const Transporte = () => {
     const interval = setInterval(() => {
       fetchData();
     }, 10000);
-    console.log('actualiza transporte')
     return () => clearInterval(interval);
   }, [user,isFocused]);
 
@@ -45,8 +44,6 @@ const Transporte = () => {
   }, [timerData.isActive]);
 
   const fetchData = async () => {
-    console.log(user.usuarioC)
-      console.log(user.token)
     try {
       const response = await axios.get('http://192.168.1.6:4000/api/transportes/listadoTransportesAsignados', {
         headers: {
@@ -98,7 +95,7 @@ const Transporte = () => {
 
       const data = await response.json();
       console.log('Respuesta de la API:', data);
-      if (response.status === 200 && data.message === 'Se inicio el transporte exitosamente') {
+      if (response.status === 200 && data.message === 'Se finalizó el transporte exitosamente') {
          fetchData();
       } else {
       }

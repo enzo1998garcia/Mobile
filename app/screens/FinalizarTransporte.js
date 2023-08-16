@@ -20,13 +20,10 @@ const FinalizarTransporte = () => {
     const interval = setInterval(() => {
       fetchData();
     }, 10000);
-    console.log('actualiza finalizar')
     return () => clearInterval(interval);
   }, []);
 
   const fetchData = async () => {
-    console.log(user.usuarioC)
-      console.log(user.token)
     try {
       const response = await axios.get('http://192.168.1.6:4000/api/transportes/listadoTransportesAsignados', {
         headers: {
