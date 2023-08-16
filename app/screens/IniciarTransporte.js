@@ -130,10 +130,10 @@ const IniciarTransporte = (props) => {
     <Text>No hay transportes en estado "Pendiente".</Text>
   )}
       <Modal
-      visible={!!errorMessage} // Mostrar el modal si hay un mensaje de error
+      visible={!!errorMessage} 
       transparent
       animationType='fade'
-      onRequestClose={() => setErrorMessage('')} // Cerrar el modal al tocar fuera
+      onRequestClose={() => setErrorMessage('')} 
       >
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>

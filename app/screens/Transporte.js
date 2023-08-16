@@ -38,8 +38,6 @@ const Transporte = () => {
         }));
       }, 1000);
     }
-
-    // Limpieza al desmontar el componente o cuando el cronómetro se detiene
     return () => clearInterval(interval);
   }, [timerData.isActive]);
 

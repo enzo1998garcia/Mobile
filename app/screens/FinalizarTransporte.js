@@ -49,7 +49,6 @@ const FinalizarTransporte = () => {
   const handleFinalizar = () => {
     console.log('cargar gastos para el transporte con ID:', selectedUser?.id_transporte);
     setShowFinishModal(false);
-    // Aquí puedes agregar la navegación a la pantalla de "Gastos y Observaciones"
     navigation.navigate('GastosyObservaciones', {
       transporteId: selectedUser?.id_transporte,
     });
@@ -77,7 +76,7 @@ const FinalizarTransporte = () => {
         </View>
       );
     } else {
-      return null; // No mostrar elementos que no estén en estado "Finalizado"
+      return null; 
     }
   };
 

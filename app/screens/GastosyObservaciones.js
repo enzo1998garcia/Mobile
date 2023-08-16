@@ -43,7 +43,7 @@ const GastosyObservaciones = () => {
   };
 
   useEffect(() => {
-    fetchData(); // Carga los gastos desde la API al montar el componente
+    fetchData(); 
   }, []);
 
   const handleDescripcionChange = (text) => {
