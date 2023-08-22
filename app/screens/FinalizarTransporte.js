@@ -25,13 +25,12 @@ const FinalizarTransporte = () => {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get('http://192.168.1.6:4000/api/transportes/listadoTransportesAsignados', {
+      const response = await axios.get('http://192.168.1.24:4000/api/transportes/listadoTransportesAsignados', {
         headers: {
           Authorization: user.token, 
         },
         params: {
           idChofer: user.usuarioC,
-          estado_transporte: 'Finalizado',
           activo: 1,
         },
       });

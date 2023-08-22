@@ -43,7 +43,7 @@ const Transporte = () => {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get('http://192.168.1.6:4000/api/transportes/listadoTransportesAsignados', {
+      const response = await axios.get('http://192.168.1.24:4000/api/transportes/listadoTransportesAsignados', {
         headers: {
           Authorization: user.token, 
         },    
@@ -78,7 +78,7 @@ const Transporte = () => {
     console.log('Finalizar acción para el transporte con ID:', selectedUser?.id_transporte);
     setShowFinishModal(false);
     try {
-      const response = await fetch('http://192.168.1.6:4000/api/transportes/finalizarTransporte', {
+      const response = await fetch('http://192.168.1.24:4000/api/transportes/finalizarTransporte', {
         method: 'POST',
         headers: {
           Accept: 'application/json',

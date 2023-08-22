@@ -5,28 +5,32 @@ import { Button, List, Divider, Menu, IconButton } from 'react-native-paper';
 import { loadImageFromGallery } from '../utils/methods';
 import { useUserContext } from '../../UserContext'; 
 import { useRoute } from '@react-navigation/native';
+import moment from 'moment';
 import axios from 'axios';
 
 const GastosyObservaciones = () => {
   const route = useRoute();
   const transporteId = route.params?.transporteId;
 
-  const [monto, setMonto] = useState('');
+  const [montos, setMonto] = useState('');
   const [foto, setFoto] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [gastosCargados, setGastosCargados] = useState([]);
   const [montoError, setMontoError] = useState('');
+  const [descripcionError, setDescripcionError] = useState('');
   const [editIndex, setEditIndex] = useState(-1);
+  const [editingMode, setEditingMode] = useState(false);
+
   const navigation = useNavigation();
   const { user } = useUserContext();
 
   const fetchData = async () => {
     try {
-      const response = await axios.get('http://192.168.1.6:4000/api/gastos/listarGastos', {
+      const response = await axios.get('http://192.168.1.24:4000/api/gastos/listarGastosPorTransporte', {
         headers: {
           Authorization: user.token, 
         },params: {
-          id_transporte: transporteId,
+          idTransporte: transporteId,
         }    
       }
       );
@@ -62,43 +66,126 @@ const GastosyObservaciones = () => {
     }
   };
   
-  const handleAgregarGasto = () => {
-    if (!monto || parseFloat(monto) <= 0) {
+  const handleAgregarGasto = async() => {
+    setDescripcionError('')
+    setMontoError('');
+    if (!descripcion || descripcion.length == 0){
+     setDescripcionError('La descripcion debe de ser detallada ')
+    }
+    if (!montos || parseFloat(montos) <= 0) {
       setMontoError('El monto debe ser mayor que cero y no puede estar vacío.');
       return;
     }
-    if (editIndex === -1) {
-      setGastosCargados([...gastosCargados, { descripcion, monto, foto }]);
-    } else {
-      const updatedGastos = [...gastosCargados];
-      updatedGastos[editIndex] = { descripcion, monto, foto };
-      setGastosCargados(updatedGastos);
-      setEditIndex(-1);
+    try {
+      const response = await fetch('http://192.168.1.24:4000/api/gastos/iniciarRegistroGastos', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: user.token,   
+        },
+        body: JSON.stringify({
+          idTransporte: transporteId,
+          monto:montos,
+          observacion:descripcion,
+        }),
+      });
+      const data = await response.json();
+      console.log('Respuesta de la API:', data);
+      if (response.status === 200 && data.message === 'Gasto agregado con exito') {
+        setDescripcion('');
+        setMonto('');
+        setFoto('');
+         fetchData();
+      } else {
+        console.log('Error al agregar gasto:', data.message);
+      }
+    } catch (error) {
+      console.error('Error en la llamada a la API:', error);
     }
-    setDescripcion('');
-    setMonto('');
-    setFoto('');
+   
   };
 
-  const handleEditarGasto = (index) => {
+  const handleEditarGasto = async (index) => {
     const gastoEditado = gastosCargados[index];
-    setDescripcion(gastoEditado.descripcion);
-    setMonto(gastoEditado.monto);
+    console.log('Editar gastos'+gastoEditado)
+    setDescripcion(gastoEditado.observaciones);
+    setMonto(gastoEditado.monto_gasto);
     setFoto(gastoEditado.foto);
     setEditIndex(index);
+    setEditingMode(true); //mustro btn editar
   };
 
-  const handleEliminarGasto = (index) => {
-    const updatedGastos = [...gastosCargados];
-    updatedGastos.splice(index, 1);
-    setGastosCargados(updatedGastos);
+  const handleModificarGasto = async () => {
+    if (editIndex === -1) {
+      return; // No se está editando ningún gasto
+    }
+
+    try {
+      const gastoEditado = gastosCargados[editIndex];
+      const formattedFecha = moment().format('YYYY-MM-DD HH:mm:ss');
+      const response = await fetch('http://192.168.1.24:4000/api/gastos/modificarGastos', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: user.token,   
+        },
+        body: JSON.stringify({
+          idGasto: gastoEditado.id_gasto,
+          monto: parseFloat(montos),
+          observacion: descripcion,
+          fecha: formattedFecha, 
+        }),
+      });
+      const data = await response.json();
+      if (response.status === 200 && data.message === 'Gasto modificado con exito') {
+        setDescripcion('');
+        setMonto('');
+        setFoto('');
+        fetchData();
+        setEditIndex(-1); // salgo modo de edición
+        setEditingMode(false);//saco el boton
+      } else {
+        console.log('Error al modificar gasto:', data.message);
+      }
+    } catch (error) {
+      console.error('Error en la llamada a la API (Modificar Gasto):', error);
+    }
+  };
+
+  const handleEliminarGasto = async (gastoId,index) => {
+    try {
+      const response = await fetch('http://192.168.1.24:4000/api/gastos/EliminarGastos', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: user.token,
+        },
+        body: JSON.stringify({
+          idGasto: gastoId,
+        }),
+      });
+      const data = await response.json();
+      if (response.status === 200 && data.message === 'Gasto eliminado con exito') {
+        // Elimina el gasto localmente
+        const updatedGastos = [...gastosCargados];
+        updatedGastos.splice(index, 1);
+        setGastosCargados(updatedGastos);
+      } else {
+        console.log('Error al eliminar gasto:', data.message);
+      }
+    } catch (error) {
+      console.error('Error en la llamada a la API (Eliminar Gasto):', error);
+    }
   };
 
 
   const renderItem = ({ item, index }) => (
     <List.Item
-    title={`Descripción ${item.observaciones}`}
-    description={`Monto: ${item.monto_gasto}`}
+    title={`Descripción ${gastosCargados[index].observaciones}`}
+    description={`Monto: ${gastosCargados[index].monto_gasto}`}
     left={(props) => <List.Icon {...props} icon="currency-usd" />}
     right={() => (
         <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 16 }}>
@@ -108,7 +195,7 @@ const GastosyObservaciones = () => {
           />
           <IconButton
             icon="delete"
-            onPress={() => handleEliminarGasto(index)}
+            onPress={() => handleEliminarGasto(gastosCargados[index].id_gasto,index)}
           />
         </View>
     )}
@@ -122,11 +209,15 @@ const GastosyObservaciones = () => {
         onPress={() => navigation.goBack()}
         style={{ alignSelf: 'flex-start', marginBottom: 16 }}
       />
+
       <View style={{ flex: 1, padding: 20}}>
+
+      {descripcionError ? <Text style={{ color: 'red' }}>{descripcionError}</Text> : null}
+
         <TextInput
           style={{ backgroundColor: '#F5F5F5', borderRadius: 8, padding: 10, marginBottom: 16, height: 45 }}
           onChangeText={handleDescripcionChange}
-          value={descripcion}
+          value={descripcion.toString()}
           placeholder="Descripción"
         />
 
@@ -135,7 +226,7 @@ const GastosyObservaciones = () => {
         <TextInput
           style={{ backgroundColor: '#F5F5F5', borderRadius: 8, padding: 10, marginBottom: 16, height:45, }}
           onChangeText={handleMontoChange}
-          value={monto}
+          value={montos.toString()}
           placeholder="Monto"
           keyboardType="numeric"
         />
@@ -144,10 +235,9 @@ const GastosyObservaciones = () => {
           Cargar Foto
         </Button>
 
-        <Button mode="contained" onPress={handleAgregarGasto} style={{ marginBottom: 16 }}>
-          Agregar Gasto
+        <Button mode="contained" onPress={editingMode ? handleModificarGasto : handleAgregarGasto} style={{ marginBottom: 16 }}>
+          {editingMode ? 'Modificar Gasto' : 'Agregar Gasto'}
         </Button>
-
         <Divider style={{ marginBottom: 16 }} />
 
         <FlatList
