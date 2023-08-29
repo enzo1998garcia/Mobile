@@ -38,29 +38,40 @@ const LoginForm = () => {
   const submitForm = async () => {
     try {
       setIsLoading(true);
-      const res = await client.post('/empleados/logueoChofer', { ...userInfo });
-      console.log(res.data);
-      if (res.data && res.data.usuario.Tipo === 'C') {
-        updateUser({
-          usuarioC: res.data.usuario.usuarioC,
-          token: res.data.token,
-        });
-        setUserInfo({ usuario: '', contrasenia: '' });
-        setIsConnected(true);
-        const token = res.data.token; // Asumiendo que el token está en la propiedad 'token' del objeto de respuesta
-        await AsyncStorage.setItem('authToken', token);
-        navigation.navigate('MenuForm', { user: res.data.usuario });  // Navega a la pantalla MenuForm
+      const response = await fetch('http://192.168.1.24:4000/api/empleados/logueoChofer', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userInfo),
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        if (data.usuario && data.usuario.Tipo === 'C') {
+          updateUser({
+            usuarioC: data.usuario.usuarioC,
+            token: data.token,
+          });
+          setUserInfo({ usuario: '', contrasenia: '' });
+          setIsConnected(true);
+          const token = data.token;
+          await AsyncStorage.setItem('authToken', token);
+          navigation.navigate('MenuForm', { user: data.usuario });
+        } else if (data.message === 'Datos ingresados incorrectos') {
+          setIsConnected(true);
+          setError('Usuario y/o Contraseña incorrectos');
+        }
       } else {
         setIsConnected(true);
-        console.log('en catch');
-        updateError('Usuario y/o Contraseña incorrectos', setError);
+        setError('Error en la solicitud a la API');
       }
     } catch (error) {
       setIsConnected(false);
-      console.log('en catch');
-      updateError('Error al conectarce con el Servidor: verificar su conexión a Internet', setError);
+      setError('Error al conectarce con el Servidor: verificar su conexión a Internet');
     } finally {
-      setIsLoading(false); // Desactiva la rueda de carga después de completar la tarea
+      setIsLoading(false);
     }
   };
 
