@@ -5,7 +5,7 @@ import FormInput from './FormInput';
 import FormSubmitButton from './FormSubmitButton';
 import { isValidObjectField, updateError} from '../utils/methods'
 
-import {Formik} from 'formik'
+import {Formik} from 'formik' 
 import * as Yup from 'yup'
 
 import client from '../api/client';
