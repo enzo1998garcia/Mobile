@@ -13,33 +13,35 @@ const Transporte = () => {
   const [showAsoGastModal, setShowAsoGastModal] = useState(false); //para asociar gastos 
   const [selectedItem, setSelectedItem] = useState(null); // para asociar los gastos a este id de transporte
   const [selectedUser, setSelectedUser] = useState(null); //seleccion del id del transporete para finalizar
-  const [timerData, setTimerData] = useState({ isActive: false, startTime: null, transport: null });
-  
+  const { user, timerData, updateTimerData } = useUserContext();
+
   const navigation = useNavigation(); 
-  const { user } = useUserContext();
   const isFocused = useIsFocused();
 
   useEffect(() => {
     fetchData();
-  }, [user,isFocused]);
+    if (timerData.isActive) {
+      startTimer(timerData.transport);
+    }
+  }, [user, isFocused]);
 
   useEffect(() => {
     // Actualizar el cronómetro cada segundo si está activo
     let interval;
     if (timerData.isActive) {
       interval = setInterval(() => {
-        setTimerData((prevData) => ({
+        updateTimerData((prevData) => ({
           ...prevData,
           elapsedTime: Math.floor((new Date() - prevData.startTime) / 1000)
         }));
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [timerData.isActive]);
+  }, [timerData.isActive, updateTimerData]);
 
   const fetchData = async () => {
     try {
-      const response = await axios.get('http://192.168.1.24:4000/api/transportes/listadoTransportesAsignados', {
+      const response = await axios.get('http://192.168.1.25:4000/api/transportes/listadoTransportesAsignados', {
         headers: {
           Authorization: user.token, 
         },    
@@ -74,7 +76,7 @@ const Transporte = () => {
     console.log('Finalizar acción para el transporte con ID:', selectedUser?.id_transporte);
     setShowFinishModal(false);
     try {
-      const response = await fetch('http://192.168.1.24:4000/api/transportes/finalizarTransporte', {
+      const response = await fetch('http://192.168.1.25:4000/api/transportes/finalizarTransporte', {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -107,11 +109,13 @@ const Transporte = () => {
   };
 
   const startTimer = (transport) => {
-    setTimerData({ isActive: true, startTime: new Date(), transport });
+   if (!timerData.isActive) {
+    updateTimerData({ isActive: true, startTime: new Date(), transport });
+  }
   };
 
   const stopTimer = () => {
-    setTimerData({ isActive: false, startTime: null, transport: null });
+    updateTimerData({ isActive: false, startTime: null, transport: null });
   };
 
   const handleCancel = () => {
@@ -119,7 +123,7 @@ const Transporte = () => {
     setShowAsoGastModal(false);
   };
 
-  const renderTime = (transport) => {
+  /*const renderTime = (transport) => {
     if (timerData.isActive && timerData.transport === transport) {
       const elapsedTime = timerData.elapsedTime;
       const minutes = Math.floor(elapsedTime / 60);
@@ -128,7 +132,17 @@ const Transporte = () => {
     }
     return null;
   };
-  
+  */
+
+  const renderTime = (transport) => {
+    if (timerData && timerData.isActive && timerData.transport === transport) {
+      const elapsedTime = timerData.elapsedTime;
+      const minutes = Math.floor(elapsedTime / 60);
+      const seconds = elapsedTime % 60;
+      return <Text>{minutes} min {seconds} seg</Text>;
+    }
+    return null;
+  };
 
   const renderItem = ({ item }) => {
     if (item.estado_transporte === 'En Viaje') {
