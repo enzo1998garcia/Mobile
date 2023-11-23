@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, Modal } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, Modal, AppState } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import axios from 'axios';
 import { Button } from 'react-native-elements';
 import { useNavigation } from '@react-navigation/native';
 import { useUserContext } from '../../UserContext'; 
 import { useIsFocused } from '@react-navigation/native';
+
 
 const Transporte = () => {
   const [data, setData] = useState([]); // MOVIMIENTO DE DATOS 
@@ -122,17 +123,6 @@ const Transporte = () => {
     setShowFinishModal(false);
     setShowAsoGastModal(false);
   };
-
-  /*const renderTime = (transport) => {
-    if (timerData.isActive && timerData.transport === transport) {
-      const elapsedTime = timerData.elapsedTime;
-      const minutes = Math.floor(elapsedTime / 60);
-      const seconds = elapsedTime % 60;
-      return <Text>{minutes} min {seconds} seg</Text>;
-    }
-    return null;
-  };
-  */
 
   const renderTime = (transport) => {
     if (timerData && timerData.isActive && timerData.transport === transport) {
