@@ -127,9 +127,13 @@ const Transporte = () => {
   const renderTime = (transport) => {
     if (timerData && timerData.isActive && timerData.transport === transport) {
       const elapsedTime = timerData.elapsedTime;
-      const minutes = Math.floor(elapsedTime / 60);
+      const hours = Math.floor(elapsedTime / 3600);
+      const minutes = Math.floor((elapsedTime % 3600) / 60);
       const seconds = elapsedTime % 60;
-      return <Text>{minutes} min {seconds} seg</Text>;
+
+      const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+    return <Text>{formattedTime}</Text>;
     }
     return null;
   };
