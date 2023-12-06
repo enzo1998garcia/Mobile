@@ -6,34 +6,46 @@ import { Button } from 'react-native-elements';
 import { useNavigation } from '@react-navigation/native';
 import { useUserContext } from '../../UserContext'; 
 import { useIsFocused } from '@react-navigation/native';
+//import Geolocation from '@react-native-community/geolocation';
+import * as Location from 'expo-location';  // Importa la API de ubicación de Expo
 
 
 const Transporte = () => {
-  const [data, setData] = useState([]); // MOVIMIENTO DE DATOS 
-  const [showFinishModal, setShowFinishModal] = useState(false); //para concelar
-  const [showAsoGastModal, setShowAsoGastModal] = useState(false); //para asociar gastos 
-  const [selectedItem, setSelectedItem] = useState(null); // para asociar los gastos a este id de transporte
-  const [selectedUser, setSelectedUser] = useState(null); //seleccion del id del transporete para finalizar
+  const [data, setData] = useState([]);
+  const [showFinishModal, setShowFinishModal] = useState(false);
+  const [showAsoGastModal, setShowAsoGastModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [location, setLocation] = useState(null); // Agrega el estado de la ubicación
   const { user, timerData, updateTimerData } = useUserContext();
+  const [locationInterval, setLocationInterval] = useState(null);
 
-  const navigation = useNavigation(); 
+
+  const navigation = useNavigation();
   const isFocused = useIsFocused();
 
   useEffect(() => {
     fetchData();
     if (timerData.isActive) {
       startTimer(timerData.transport);
+      Location.requestForegroundPermissionsAsync(); // Solicitar permisos en cada renderizado
     }
+    const locationInterval = setInterval(() => {
+      getLocationAsync();
+    }, 60000);
+
+    return () => {
+      clearInterval(locationInterval); // Limpia el intervalo al desmontar el componente
+    };
   }, [user, isFocused]);
 
   useEffect(() => {
-    // Actualizar el cronómetro cada segundo si está activo
     let interval;
     if (timerData.isActive) {
       interval = setInterval(() => {
         updateTimerData((prevData) => ({
           ...prevData,
-          elapsedTime: Math.floor((new Date() - prevData.startTime) / 1000)
+          elapsedTime: Math.floor((new Date() - prevData.startTime) / 1000),
         }));
       }, 1000);
     }
@@ -44,25 +56,25 @@ const Transporte = () => {
     try {
       const response = await axios.get('http://192.168.1.25:4000/api/transportes/listadoTransportesAsignados', {
         headers: {
-          Authorization: user.token, 
-        },    
+          Authorization: user.token,
+        },
         params: {
           idChofer: user.usuarioC,
           estado_transporte: 'En Viaje',
-          activo: 1
+          activo: 1,
         },
       });
       setData(response.data.listado);
 
-      const enViajeTransport = response.data.listado.find(item => item.estado_transporte === 'En Viaje');
-    if (enViajeTransport) {
-      startTimer(enViajeTransport.id_transporte);
-    }
+      const enViajeTransport = response.data.listado.find((item) => item.estado_transporte === 'En Viaje');
+      if (enViajeTransport) {
+        startTimer(enViajeTransport.id_transporte);
+      }
     } catch (error) {
       console.log('Error al obtener los datos:', error.message);
     }
   };
-  
+
   const handleFinishButtonPress = (item) => {
     setSelectedUser(item);
     setShowFinishModal(true);
@@ -72,8 +84,8 @@ const Transporte = () => {
     setSelectedItem(item);
     setShowAsoGastModal(true);
   };
-  
-  const handleFinalizar = async() => {
+
+  const handleFinalizar = async () => {
     console.log('Finalizar acción para el transporte con ID:', selectedUser?.id_transporte);
     setShowFinishModal(false);
     try {
@@ -82,18 +94,17 @@ const Transporte = () => {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          Authorization: user.token,   
+          Authorization: user.token,
         },
         body: JSON.stringify({
           idTransporte: selectedUser?.id_transporte,
-  
         }),
       });
 
       const data = await response.json();
       console.log('Respuesta de la API:', data);
       if (response.status === 200 && data.message === 'Se finalizó el transporte exitosamente') {
-         fetchData();
+        fetchData();
       } else {
       }
     } catch (error) {
@@ -109,14 +120,97 @@ const Transporte = () => {
     });
   };
 
-  const startTimer = (transport) => {
-   if (!timerData.isActive) {
-    updateTimerData({ isActive: true, startTime: new Date(), transport });
-  }
+  const startTimer = async (transport) => {
+    if (!timerData.isActive) {
+      try {
+        const location = await getLocationAsync();
+  
+        if (location) {
+          const locationData = {
+            idTransporte: transport,
+            latitud: location.coords.latitude,
+            longitud: location.coords.longitude,
+          };
+  
+          sendLocationData(locationData);
+  
+          // Configurar el intervalo para enviar la ubicación cada 10 segundos
+          const intervalId = setInterval(() => {
+            getLocationAsync().then(newLocation => {
+              if (newLocation) {
+                const newLocationData = {
+                  idTransporte: transport,
+                  latitud: newLocation.coords.latitude,
+                  longitud: newLocation.coords.longitude,
+                };
+                sendLocationData(newLocationData);
+              }
+            });
+          }, 10000);
+  
+          setLocationInterval(intervalId);
+        }
+  
+        updateTimerData({
+          isActive: true,
+          startTime: new Date(),
+          transport,
+        });
+      } catch (error) {
+        console.error('Error al obtener la ubicación:', error);
+      }
+    }
   };
+  
+
+  const getLocationAsync = async () => {
+    try {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.error('Se denegó el permiso para acceder a la ubicación');
+        return null;
+      }
+  
+      let location = await Location.getCurrentPositionAsync({});
+  
+      if (location) {
+        setLocation(location);
+        const enViajeTransport = data.find((item) => item.estado_transporte === 'En Viaje');
+        if (enViajeTransport) {
+          startTimer(enViajeTransport.id_transporte);
+        }
+      }
+  
+      return location;
+    } catch (error) {
+      console.error('Error al obtener la ubicación:', error);
+      return null;
+    }
+  };
+  
+
+  const sendLocationData = async (locationData) => {
+    try {
+      const response = await axios.post(
+        'http://192.168.1.25:4000/api/transportes/ubicacionReal',
+        locationData,
+        {
+          headers: {
+            Authorization: user.token,
+          },
+        }
+      );
+
+      console.log('Datos de ubicación enviados:', response.data);
+    } catch (error) {
+      console.error('Error al enviar datos de ubicación:', error.message);
+    }
+  };
+
 
   const stopTimer = () => {
     updateTimerData({ isActive: false, startTime: null, transport: null });
+    clearInterval(locationInterval);
   };
 
   const handleCancel = () => {
@@ -131,9 +225,11 @@ const Transporte = () => {
       const minutes = Math.floor((elapsedTime % 3600) / 60);
       const seconds = elapsedTime % 60;
 
-      const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes
+        .toString()
+        .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 
-    return <Text>{formattedTime}</Text>;
+      return <Text>{formattedTime}</Text>;
     }
     return null;
   };
