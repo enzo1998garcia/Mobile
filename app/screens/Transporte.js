@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, FlatList, TouchableOpacity, Modal } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import axios from 'axios';
@@ -14,25 +14,15 @@ const Transporte = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const { user, timerData, updateTimerData } = useUserContext();
-  const [location, setLocation] = useState(null);
-  const [locationInterval, setLocationInterval] = useState(null);
+  const locationIntervalRef = useRef(null);
 
   const navigation = useNavigation();
 
   useEffect(() => {
     fetchData();
-    const enViajeTransport = data.find((item) => item.estado_transporte === 'En Viaje');
-    if (enViajeTransport && !timerData.isActive) {
-      startTimer(enViajeTransport.id_transporte);
-    }
-
-    const interval = setInterval(() => {
-      fetchData();
-    }, 60000);
 
     return () => {
-      clearInterval(interval);
-      clearInterval(locationInterval);
+      clearInterval(locationIntervalRef.current);
     };
   }, [user]);
 
@@ -46,9 +36,35 @@ const Transporte = () => {
         }));
       }, 1000);
     }
-
     return () => clearInterval(interval);
   }, [timerData.isActive, updateTimerData]);
+
+  useEffect(() => {
+    if (timerData.isActive) {
+      startLocationUpdates(timerData.transport);
+    }
+  }, [timerData.isActive]);
+
+  const startLocationUpdates = async (transport) => {
+    try {
+      await getLocationAsync(); // Obtener la ubicación inicial
+
+      locationIntervalRef.current = setInterval(() => {
+        getLocationAsync().then((newLocation) => {
+          if (newLocation) {
+            const locationData = {
+              idTransporte: transport,
+              latitud: newLocation.coords.latitude,
+              longitud: newLocation.coords.longitude,
+            };
+            sendLocationData(locationData);
+          }
+        });
+      }, 10000);
+    } catch (error) {
+      console.error('Error al iniciar la actualización de ubicación:', error);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -71,6 +87,86 @@ const Transporte = () => {
     } catch (error) {
       console.log('Error al obtener los datos:', error.message);
     }
+  };
+
+  const startTimer = async (transport) => {
+    if (!timerData.isActive) {
+      try {
+        // Iniciamos el temporizador solo si no está activo
+        updateTimerData({
+          isActive: true,
+          startTime: new Date(),
+          transport,
+        });
+
+        const location = await getLocationAsync();
+
+        if (location) {
+          const locationData = {
+            idTransporte: transport,
+            latitud: location.coords.latitude,
+            longitud: location.coords.longitude,
+          };
+
+          sendLocationData(locationData);
+
+          locationIntervalRef.current = setInterval(() => {
+            getLocationAsync().then((newLocation) => {
+              if (newLocation) {
+                const locationData = {
+                  idTransporte: transport,
+                  latitud: newLocation.coords.latitude,
+                  longitud: newLocation.coords.longitude,
+                };
+                sendLocationData(locationData);
+              }
+            });
+          }, 10000);
+        }
+      } catch (error) {
+        console.error('Error al obtener la ubicación:', error);
+      }
+    }
+  };
+
+  const getLocationAsync = async () => {
+    try {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.error('Se denegó el permiso para acceder a la ubicación');
+        return null;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+
+      return location;
+    } catch (error) {
+      console.error('Error al obtener la ubicación:', error);
+      return null;
+    }
+  };
+
+  const sendLocationData = async (locationData) => {
+    try {
+      const response = await axios.post(
+        'http://192.168.1.25:4000/api/transportes/ubicacionReal',
+        locationData,
+        {
+          headers: {
+            Authorization: user.token,
+          },
+        }
+      );
+
+      console.log('Datos de ubicación enviados:', response.data);
+    } catch (error) {
+      console.error('Error al enviar datos de ubicación:', error.message);
+    }
+  };
+
+  const stopTimer = () => {
+    updateTimerData({ isActive: false, startTime: null, transport: null });
+    clearInterval(locationIntervalRef.current);
   };
 
   const handleFinishButtonPress = (item) => {
@@ -117,97 +213,6 @@ const Transporte = () => {
     navigation.navigate('GastosyObservaciones', {
       transporteId: selectedItem?.id_transporte,
     });
-  };
-
-  const startTimer = async (transport) => {
-    if (!timerData.isActive) {
-      try {
-        const location = await getLocationAsync();
-
-        if (location) {
-          const locationData = {
-            idTransporte: transport,
-            latitud: location.coords.latitude,
-            longitud: location.coords.longitude,
-          };
-
-          sendLocationData(locationData);
-
-          if (!timerData.isActive) {
-            const intervalId = setInterval(() => {
-              getLocationAsync().then((newLocation) => {
-                if (newLocation) {
-                  const newLocationData = {
-                    idTransporte: transport,
-                    latitud: newLocation.coords.latitude,
-                    longitud: newLocation.coords.longitude,
-                  };
-                  sendLocationData(newLocationData);
-                }
-              });
-            }, 10000);
-
-            setLocationInterval(intervalId);
-          }
-        }
-
-        updateTimerData({
-          isActive: true,
-          startTime: new Date(),
-          transport,
-        });
-      } catch (error) {
-        console.error('Error al obtener la ubicación:', error);
-      }
-    }
-  };
-
-  const getLocationAsync = async () => {
-    try {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        console.error('Se denegó el permiso para acceder a la ubicación');
-        return null;
-      }
-
-      let location = await Location.getCurrentPositionAsync({});
-
-      if (location) {
-        setLocation(location);
-        const enViajeTransport = data.find((item) => item.estado_transporte === 'En Viaje');
-        if (enViajeTransport) {
-          startTimer(enViajeTransport.id_transporte);
-        }
-      }
-
-      return location;
-    } catch (error) {
-      console.error('Error al obtener la ubicación:', error);
-      return null;
-    }
-  };
-
-  const sendLocationData = async (locationData) => {
-    try {
-      const response = await axios.post(
-        'http://192.168.1.25:4000/api/transportes/ubicacionReal',
-        locationData,
-        {
-          headers: {
-            Authorization: user.token,
-          },
-        }
-      );
-
-      console.log('Datos de ubicación enviados:', response.data);
-    } catch (error) {
-      console.error('Error al enviar datos de ubicación:', error.message);
-    }
-  };
-
-  const stopTimer = () => {
-    updateTimerData({ isActive: false, startTime: null, transport: null });
-    clearInterval(locationInterval);
   };
 
   const handleCancel = () => {
