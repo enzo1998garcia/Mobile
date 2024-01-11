@@ -19,7 +19,7 @@ const FinalizarTransporte = () => {
     fetchData();
     const interval = setInterval(() => {
       fetchData();
-    }, 10000);
+    }, 1000);
     return () => clearInterval(interval);
   }, []);
 

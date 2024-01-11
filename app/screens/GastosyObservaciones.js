@@ -34,7 +34,6 @@ const GastosyObservaciones = () => {
         }    
       }
       );
-      console.log(response)
       if (response.data && response.data.message === 'Existen gastos') {
         
         setGastosCargados(response.data.listado);
@@ -48,6 +47,10 @@ const GastosyObservaciones = () => {
 
   useEffect(() => {
     fetchData(); 
+	const interval = setInterval(() => {
+      fetchData();
+    }, 1000);
+	 return () => clearInterval(interval);
   }, []);
 
   const handleDescripcionChange = (text) => {
@@ -91,14 +94,13 @@ const GastosyObservaciones = () => {
         }),
       });
       const data = await response.json();
-      console.log('Respuesta de la API:', data);
       if (response.status === 200 && data.message === 'Gasto agregado con exito') {
         setDescripcion('');
         setMonto('');
         setFoto('');
          fetchData();
       } else {
-        console.log('Error al agregar gasto:', data.message);
+        console.log('agregar gasto:', data.message);
       }
     } catch (error) {
       console.error('Error en la llamada a la API:', error);
@@ -108,7 +110,6 @@ const GastosyObservaciones = () => {
 
   const handleEditarGasto = async (index) => {
     const gastoEditado = gastosCargados[index];
-    console.log('Editar gastos'+gastoEditado)
     setDescripcion(gastoEditado.observaciones);
     setMonto(gastoEditado.monto_gasto);
     setFoto(gastoEditado.foto);
@@ -147,7 +148,7 @@ const GastosyObservaciones = () => {
         setEditIndex(-1); // salgo modo de edición
         setEditingMode(false);//saco el boton
       } else {
-        console.log('Error al modificar gasto:', data.message);
+        console.log('modificar gasto:', data.message);
       }
     } catch (error) {
       console.error('Error en la llamada a la API (Modificar Gasto):', error);
@@ -174,7 +175,7 @@ const GastosyObservaciones = () => {
         updatedGastos.splice(index, 1);
         setGastosCargados(updatedGastos);
       } else {
-        console.log('Error al eliminar gasto:', data.message);
+        console.log('eliminar gasto:', data.message);
       }
     } catch (error) {
       console.error('Error en la llamada a la API (Eliminar Gasto):', error);
