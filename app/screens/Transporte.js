@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, Modal, AppState } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, Modal } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import axios from 'axios';
 import { Button } from 'react-native-elements';
 import { useNavigation } from '@react-navigation/native';
-import { useUserContext } from '../../UserContext'; 
-import { useIsFocused } from '@react-navigation/native';
-//import Geolocation from '@react-native-community/geolocation';
-import * as Location from 'expo-location';  // Importa la API de ubicación de Expo
-
+import { useUserContext } from '../../UserContext';
+import * as Location from 'expo-location';
 
 const Transporte = () => {
   const [data, setData] = useState([]);
@@ -16,28 +13,28 @@ const Transporte = () => {
   const [showAsoGastModal, setShowAsoGastModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [location, setLocation] = useState(null); // Agrega el estado de la ubicación
   const { user, timerData, updateTimerData } = useUserContext();
+  const [location, setLocation] = useState(null);
   const [locationInterval, setLocationInterval] = useState(null);
 
-
   const navigation = useNavigation();
-  const isFocused = useIsFocused();
 
   useEffect(() => {
     fetchData();
-    if (timerData.isActive) {
-      startTimer(timerData.transport);
-      Location.requestForegroundPermissionsAsync(); // Solicitar permisos en cada renderizado
+    const enViajeTransport = data.find((item) => item.estado_transporte === 'En Viaje');
+    if (enViajeTransport && !timerData.isActive) {
+      startTimer(enViajeTransport.id_transporte);
     }
-    const locationInterval = setInterval(() => {
-      getLocationAsync();
+
+    const interval = setInterval(() => {
+      fetchData();
     }, 60000);
 
     return () => {
-      clearInterval(locationInterval); // Limpia el intervalo al desmontar el componente
+      clearInterval(interval);
+      clearInterval(locationInterval);
     };
-  }, [user, isFocused]);
+  }, [user]);
 
   useEffect(() => {
     let interval;
@@ -49,6 +46,7 @@ const Transporte = () => {
         }));
       }, 1000);
     }
+
     return () => clearInterval(interval);
   }, [timerData.isActive, updateTimerData]);
 
@@ -67,7 +65,7 @@ const Transporte = () => {
       setData(response.data.listado);
 
       const enViajeTransport = response.data.listado.find((item) => item.estado_transporte === 'En Viaje');
-      if (enViajeTransport) {
+      if (enViajeTransport && !timerData.isActive) {
         startTimer(enViajeTransport.id_transporte);
       }
     } catch (error) {
@@ -106,6 +104,7 @@ const Transporte = () => {
       if (response.status === 200 && data.message === 'Se finalizó el transporte exitosamente') {
         fetchData();
       } else {
+        console.log('Error al finalizar el transporte');
       }
     } catch (error) {
       console.error('Error al hacer la solicitud:', error);
@@ -124,33 +123,34 @@ const Transporte = () => {
     if (!timerData.isActive) {
       try {
         const location = await getLocationAsync();
-  
+
         if (location) {
           const locationData = {
             idTransporte: transport,
             latitud: location.coords.latitude,
             longitud: location.coords.longitude,
           };
-  
+
           sendLocationData(locationData);
-  
-          // Configurar el intervalo para enviar la ubicación cada 10 segundos
-          const intervalId = setInterval(() => {
-            getLocationAsync().then(newLocation => {
-              if (newLocation) {
-                const newLocationData = {
-                  idTransporte: transport,
-                  latitud: newLocation.coords.latitude,
-                  longitud: newLocation.coords.longitude,
-                };
-                sendLocationData(newLocationData);
-              }
-            });
-          }, 10000);
-  
-          setLocationInterval(intervalId);
+
+          if (!timerData.isActive) {
+            const intervalId = setInterval(() => {
+              getLocationAsync().then((newLocation) => {
+                if (newLocation) {
+                  const newLocationData = {
+                    idTransporte: transport,
+                    latitud: newLocation.coords.latitude,
+                    longitud: newLocation.coords.longitude,
+                  };
+                  sendLocationData(newLocationData);
+                }
+              });
+            }, 10000);
+
+            setLocationInterval(intervalId);
+          }
         }
-  
+
         updateTimerData({
           isActive: true,
           startTime: new Date(),
@@ -161,7 +161,6 @@ const Transporte = () => {
       }
     }
   };
-  
 
   const getLocationAsync = async () => {
     try {
@@ -170,9 +169,9 @@ const Transporte = () => {
         console.error('Se denegó el permiso para acceder a la ubicación');
         return null;
       }
-  
+
       let location = await Location.getCurrentPositionAsync({});
-  
+
       if (location) {
         setLocation(location);
         const enViajeTransport = data.find((item) => item.estado_transporte === 'En Viaje');
@@ -180,14 +179,13 @@ const Transporte = () => {
           startTimer(enViajeTransport.id_transporte);
         }
       }
-  
+
       return location;
     } catch (error) {
       console.error('Error al obtener la ubicación:', error);
       return null;
     }
   };
-  
 
   const sendLocationData = async (locationData) => {
     try {
@@ -206,7 +204,6 @@ const Transporte = () => {
       console.error('Error al enviar datos de ubicación:', error.message);
     }
   };
-
 
   const stopTimer = () => {
     updateTimerData({ isActive: false, startTime: null, transport: null });
@@ -241,48 +238,30 @@ const Transporte = () => {
           <Text>{item.id_transporte}</Text>
           <Text>{item.estado_transporte}</Text>
           <Text>{item.kms_distancia}</Text>
-          <View style={styles.timerContainer}>
-            {renderTime(item.id_transporte)}
-          </View>
+          <View style={styles.timerContainer}>{renderTime(item.id_transporte)}</View>
           <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={styles.finalizarButton}
-              onPress={() => handleFinishButtonPress(item)}
-            >
+            <TouchableOpacity style={styles.finalizarButton} onPress={() => handleFinishButtonPress(item)}>
               <Icon name='check-circle-outline' size={24} color='white' />
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.calculatorButton}
-              onPress={() => handleAsoGastButtonPress(item)}
-            >
+            <TouchableOpacity style={styles.calculatorButton} onPress={() => handleAsoGastButtonPress(item)}>
               <Icon name='attach-money' size={24} color='white' />
             </TouchableOpacity>
           </View>
         </View>
       );
     } else {
-      return null; // No mostrar elementos que no estén en estado "En viaje"
+      return null;
     }
   };
 
   return (
-    
     <View style={styles.container}>
-      {data && data.some(item => item.estado_transporte === "En Viaje") ? (
-    <FlatList
-      data={data}
-      keyExtractor={(item) => item.id_transporte.toString()}
-      renderItem={renderItem}
-    />
-  ) : (
-    <Text>No hay transportes en estado "En viaje".</Text>
-  )}
-      <Modal
-        visible={showFinishModal}
-        transparent
-        animationType='fade'
-        onRequestClose={() => setShowFinishModal(false)}
-      >
+      {data && data.some((item) => item.estado_transporte === 'En Viaje') ? (
+        <FlatList data={data} keyExtractor={(item) => item.id_transporte.toString()} renderItem={renderItem} />
+      ) : (
+        <Text>No hay transportes en estado "En viaje".</Text>
+      )}
+      <Modal visible={showFinishModal} transparent animationType='fade' onRequestClose={() => setShowFinishModal(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text>Desea Finalizar el viaje: {selectedUser?.id_transporte}</Text>
@@ -294,12 +273,7 @@ const Transporte = () => {
           </View>
         </View>
       </Modal>
-      <Modal
-        visible={showAsoGastModal}
-        transparent
-        animationType='fade'
-        onRequestClose={() => setShowAsoGastModal(false)}
-      >
+      <Modal visible={showAsoGastModal} transparent animationType='fade' onRequestClose={() => setShowAsoGastModal(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text>Desea Asociar los gastos del viaje: {selectedItem?.id_transporte}</Text>
