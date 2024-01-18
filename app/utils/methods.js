@@ -12,25 +12,21 @@ export const updateError = (errorMessage, setErrorState) =>{
   setErrorState(errorMessage);
    }
 
-   export const loadImageFromGallery = async () => {
+   export const loadImageFromGallery = async (options) => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        aspect: [1, 1], // Aquí se utiliza un array con los valores deseados
+        aspect: options.aspect || [1, 1],
         quality: 1,
       });
   
-      if (!result.canceled && result.assets.length > 0) {
-        const selectedImage = result.assets[0];
-        const uriParts = selectedImage.uri.split('/');
-        const fileName = uriParts[uriParts.length - 1].split('.')[0];
-        return fileName; // Devuelve solo el nombre de la foto sin la extensión
-      } else {
-        return null;
+      if (!result.canceled) {
+        return result;
       }
     } catch (error) {
-      console.log('Error al seleccionar la imagen:', error);
-      return null;
+      console.error('Error al cargar la imagen desde la galería:', error);
     }
+  
+    return null;
   };

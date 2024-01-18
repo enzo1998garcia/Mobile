@@ -64,49 +64,68 @@ const GastosyObservaciones = () => {
 
   const handleCargarFoto = async () => {
     const result = await loadImageFromGallery({ aspect: [1, 1] });
-    if (result) {
+    if (result !== null) {
       setFoto(result);
     }
   };
   
-  const handleAgregarGasto = async() => {
-    setDescripcionError('')
+  const handleAgregarGasto = async () => {
+    setDescripcionError('');
     setMontoError('');
-    if (!descripcion || descripcion.length == 0){
-     setDescripcionError('La descripcion debe de ser detallada ')
+  
+    if (!descripcion || descripcion.length === 0) {
+      setDescripcionError('La descripción debe ser detallada');
+      return;
     }
+  
     if (!montos || parseFloat(montos) <= 0) {
       setMontoError('El monto debe ser mayor que cero y no puede estar vacío.');
       return;
     }
+  
+    console.log('URI de la foto:', foto.uri);
+
     try {
+      const formData = new FormData();
+      formData.append('idTransporte', transporteId);
+      formData.append('monto', montos);
+      formData.append('observacion', descripcion);
+  
+      // Agrega la imagen al formulario si está seleccionada
+      if (foto && foto.uri) {
+        formData.append('imagen', {
+          uri: foto.uri,
+          type: 'image/jpeg',
+          name: 'image.jpg',
+        });
+      }
+  
       const response = await fetch('http://192.168.1.25:4000/api/gastos/iniciarRegistroGastos', {
         method: 'POST',
         headers: {
           Accept: 'application/json',
-          'Content-Type': 'application/json',
-          Authorization: user.token,   
+          'Content-Type': 'multipart/form-data', // Importante establecer el tipo de contenido correcto
+          Authorization: user.token,
         },
-        body: JSON.stringify({
-          idTransporte: transporteId,
-          monto:montos,
-          observacion:descripcion,
-        }),
+        body: formData,
       });
+  
       const data = await response.json();
+  
       if (response.status === 200 && data.message === 'Gasto agregado con exito') {
         setDescripcion('');
         setMonto('');
         setFoto('');
-         fetchData();
+        fetchData();
       } else {
-        console.log('agregar gasto:', data.message);
+        console.log('Agregar gasto:', data.message);
       }
     } catch (error) {
       console.error('Error en la llamada a la API:', error);
     }
-   
   };
+  
+  
 
   const handleEditarGasto = async (index) => {
     const gastoEditado = gastosCargados[index];

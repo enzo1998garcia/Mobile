@@ -264,7 +264,7 @@ const Transporte = () => {
       {data && data.some((item) => item.estado_transporte === 'En Viaje') ? (
         <FlatList data={data} keyExtractor={(item) => item.id_transporte.toString()} renderItem={renderItem} />
       ) : (
-        <Text>No hay transportes en estado "En viaje".</Text>
+        <Text>No hay transportes en estado "En Viaje".</Text>
       )}
       <Modal visible={showFinishModal} transparent animationType='fade' onRequestClose={() => setShowFinishModal(false)}>
         <View style={styles.modalContainer}>
