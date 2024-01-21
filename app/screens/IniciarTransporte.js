@@ -50,7 +50,7 @@ const IniciarTransporte = (props) => {
     // valida si hay un transporte en estado En Viaje
     const enViajeTransport = data.find((transport) => transport.estado_transporte === 'En Viaje');
     if (enViajeTransport) {
-      setErrorMessage('No se puede iniciar otro transporte mientras haya uno en estado "En Viaje"');
+      setErrorMessage('No se puede  iniciar otro transporte mientras haya uno en estado "En Viaje"');
     } else {
       setSelectedUser(item);
       setShowPlayModal(true);
