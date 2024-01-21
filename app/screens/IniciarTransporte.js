@@ -119,7 +119,7 @@ const IniciarTransporte = (props) => {
   };
   return (
     <View style={styles.container}>
-      {errorMessage ? <Text style={styles.errorMessage}>{errorMessage}</Text> : null}
+      
       {data && data.some(item => item.estado_transporte === "Pendiente") ? (
     <FlatList
       data={data}
