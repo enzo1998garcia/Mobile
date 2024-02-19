@@ -91,7 +91,7 @@ const GastosyObservaciones = () => {
       formData.append('monto', montos);
       formData.append('observacion', descripcion);
   
-      // Agrega la imagen al formulario si está seleccionada
+
       if (foto && foto.uri) {
         formData.append('imagen', {
           uri: foto.uri,
@@ -104,7 +104,7 @@ const GastosyObservaciones = () => {
         method: 'POST',
         headers: {
           Accept: 'application/json',
-          'Content-Type': 'multipart/form-data', // Importante establecer el tipo de contenido correcto
+          'Content-Type': 'multipart/form-data', 
           Authorization: user.token,
         },
         body: formData,

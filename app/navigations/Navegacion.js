@@ -5,7 +5,7 @@ import { Icon } from 'react-native-elements';
 import Transporte from '../screens/Transporte';
 import IniciarTransporte from '../screens/IniciarTransporte';
 import GastosyObservaciones from '../screens/GastosyObservaciones';
-import Listado from '../screens/Listado';
+import Usuario from '../screens/Usuario';
 import FinalizarTransporte from '../screens/FinalizarTransporte';
 
 const Tab = createBottomTabNavigator();
@@ -33,8 +33,8 @@ const Navegacion = (props) => {
           case "Transportes Finalizados":
             iconName="account-alert-outline"
             break;  
-          case "listado":
-            iconName="format-list-checkbox"
+          case "Usuario":
+            iconName="account-edit"
             break;
         }
         return(
@@ -69,6 +69,12 @@ const Navegacion = (props) => {
         options={{ headerShown: false }}
       >
         {() => <FinalizarTransporte/>}
+      </Tab.Screen>
+      <Tab.Screen
+        name="Usuario"
+        options={{ headerShown: false }}
+      >
+        {() => <Usuario/>}
       </Tab.Screen>
     </Tab.Navigator>
   );

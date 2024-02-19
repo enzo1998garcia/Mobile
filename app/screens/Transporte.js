@@ -138,10 +138,9 @@ const Transporte = () => {
       }
 
       let location = await Location.getCurrentPositionAsync({});
-
       return location;
     } catch (error) {
-      console.error('Error al obtener la ubicación:', error);
+
       return null;
     }
   };
