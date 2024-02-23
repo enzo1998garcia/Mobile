@@ -119,6 +119,10 @@ const GastosyObservaciones = () => {
         fetchData();
       } else {
         console.log('Agregar gasto:', data.message);
+        setDescripcion('');
+        setMonto('');
+        setFoto('');
+        fetchData();
       }
     } catch (error) {
       console.error('Error en la llamada a la API:', error);
@@ -168,6 +172,10 @@ const GastosyObservaciones = () => {
         setEditingMode(false);//saco el boton
       } else {
         console.log('modificar gasto:', data.message);
+        setDescripcion('');
+        setMonto('');
+        setFoto('');
+        fetchData();
       }
     } catch (error) {
       console.error('Error en la llamada a la API (Modificar Gasto):', error);
