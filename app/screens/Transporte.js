@@ -65,6 +65,7 @@ const Transporte = () => {
           transport: enViajeTransport.id_transporte,
           elapsedTime: 0,
         });
+        startLocationUpdates(enViajeTransport.id_transporte);
       }
     } catch (error) {
       console.log('Error al obtener los datos:', error.message);
@@ -74,7 +75,7 @@ const Transporte = () => {
   const startLocationUpdates = async (transport) => {
     try {
       await getLocationAsync(); // Obtener la ubicación inicial
-
+  
       locationIntervalRef.current = setInterval(() => {
         getLocationAsync().then((newLocation) => {
           if (newLocation) {
@@ -90,7 +91,7 @@ const Transporte = () => {
     } catch (error) {
       console.error('Error al iniciar la actualización de ubicación:', error);
     }
-  };
+  };  
 
   const getLocationAsync = async () => {
     try {
