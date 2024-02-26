@@ -27,11 +27,17 @@
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
         "ACCESS_FINE_LOCATION",
-         "ACCESS_COARSE_LOCATION"
-      ]
+        "ACCESS_COARSE_LOCATION"
+      ],
+      "package": "transportefed.com"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f41e53c3-8132-48f5-bd0e-df624c1356ab"
+      }
     }
   }
 }

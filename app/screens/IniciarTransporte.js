@@ -21,7 +21,7 @@ const IniciarTransporte = (props) => {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get('http://192.168.1.25:4000/api/transportes/listadoTransportesAsignados', {
+      const response = await axios.get('http://107.22.75.115:4000/api/transportes/listadoTransportesAsignados', {
         headers: {
           Authorization: user.token, 
         },    
@@ -67,7 +67,7 @@ const IniciarTransporte = (props) => {
     setShowPlayModal(false);
 
     try {
-      const response = await fetch('http://192.168.1.25:4000/api/transportes/inicioTransporte', {
+      const response = await fetch('http://107.22.75.115:4000/api/transportes/inicioTransporte', {
         method: 'POST',
         headers: {
           Accept: 'application/json',

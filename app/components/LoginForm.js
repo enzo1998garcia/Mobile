@@ -38,7 +38,7 @@ const LoginForm = () => {
   const submitForm = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('http://192.168.1.25:4000/api/empleados/logueoChofer', {
+      const response = await fetch('http://107.22.75.115:4000/api/empleados/logueoChofer', {
         method: 'POST',
         headers: {
           Accept: 'application/json',

@@ -12,7 +12,7 @@ const MenuForm = () => {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get('http://192.168.1.25:4000/api');
+      const response = await axios.get('http://107.22.75.115:4000/api');
       setData(response.data);
     } catch (error) {
       console.log(error.message);

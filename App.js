@@ -16,7 +16,7 @@ const App = () => {
 
   const fetchApi = async () => {
     try {
-      const res = await axios.get('http://192.168.1.25:4000/api/');
+      const res = await axios.get('http://107.22.75.115:4000/api/');
       setUser(res.data.user);
     } catch (error) {
       console.log(error.message);

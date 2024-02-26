@@ -26,7 +26,7 @@ const GastosyObservaciones = () => {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get('http://192.168.1.25:4000/api/gastos/listarGastosPorTransporte', {
+      const response = await axios.get('http://107.22.75.115:4000/api/gastos/listarGastosPorTransporte', {
         headers: {
           Authorization: user.token, 
         },params: {
@@ -100,7 +100,7 @@ const GastosyObservaciones = () => {
         });
       }
   
-      const response = await fetch('http://192.168.1.25:4000/api/gastos/iniciarRegistroGastos', {
+      const response = await fetch('http://107.22.75.115:4000/api/gastos/iniciarRegistroGastos', {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -148,7 +148,7 @@ const GastosyObservaciones = () => {
     try {
       const gastoEditado = gastosCargados[editIndex];
       const formattedFecha = moment().format('YYYY-MM-DD HH:mm:ss');
-      const response = await fetch('http://192.168.1.25:4000/api/gastos/modificarGastos', {
+      const response = await fetch('http://107.22.75.115:4000/api/gastos/modificarGastos', {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -184,7 +184,7 @@ const GastosyObservaciones = () => {
 
   const handleEliminarGasto = async (gastoId,index) => {
     try {
-      const response = await fetch('http://192.168.1.25:4000/api/gastos/EliminarGastos', {
+      const response = await fetch('http://107.22.75.115:4000/api/gastos/EliminarGastos', {
         method: 'POST',
         headers: {
           Accept: 'application/json',
