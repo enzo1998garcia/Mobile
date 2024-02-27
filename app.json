@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "Celular",
+    "name": "transportefed",
     "slug": "Celular",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/Logo.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
