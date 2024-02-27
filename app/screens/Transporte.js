@@ -16,8 +16,12 @@ const Transporte = () => {
   const { user, timerData, updateTimerData } = useUserContext();
   const locationIntervalRef = useRef(null);
   const timerIntervalRef = useRef(null);
-
+  const [currentLocation, setCurrentLocation] = useState(null);
   const navigation = useNavigation();
+
+  useEffect(() => {
+    getLocationAsync();
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -102,7 +106,8 @@ const Transporte = () => {
       }
 
       let location = await Location.getCurrentPositionAsync({});
-      return location;
+      setCurrentLocation(location);
+      return location;  
     } catch (error) {
       return null;
     }
@@ -247,6 +252,10 @@ const Transporte = () => {
           </View>
         </View>
       </Modal>
+      <View style={styles.locationContainer}>
+        <Text>Latitud: {currentLocation ? currentLocation.coords.latitude : 'No disponible'}</Text>
+        <Text>Longitud: {currentLocation ? currentLocation.coords.longitude : 'No disponible'}</Text>
+      </View>
     </View>
   );
 };
@@ -307,6 +316,14 @@ const styles = StyleSheet.create({
     marginTop: 10,
     backgroundColor: '#a17dc3',
     borderRadius: 8,
+  },
+      locationContainer: {
+    marginTop: 20,
+    backgroundColor: '#ffffff',
+    padding: 10,
+    borderRadius: 8,
+    borderColor: '#cccccc',
+    borderWidth: 1,
   },
 });
 
